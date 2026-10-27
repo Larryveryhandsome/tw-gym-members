@@ -16,7 +16,7 @@
 | 4 | 完成使用者任務 | ✅ | Playwright 8 項全過：一鍵示範完整跑完（請假 → 通知 18 位常客 → 邀請 F老師 → 接下 → 課表顯示代課 → 異動公告「B ➜ F」）；候選都婉拒 → nobody → 停課；會員關懷送出＋「我要去」記為喚回；LINE 打字與選單自動回覆；試算拉桿數字正確。 |
 | 5 | 安全／效能／環境 | ⚠️ | 無個資（會員、器材、報修全部虛構）、無登入、無金鑰。輸入 `<img onerror>` 不會執行（有測）。手機 375px 七個分頁都沒有橫向捲動（有測；原站在 375px 有橫向捲動，這版已修）。**只測 Chromium**，Firefox／Safari／實體手機沒測。`config.js` 視為可信資料，部分欄位未跳脫（README 已註明）。 |
 | 6 | 資料 | ✅（不適用為主） | 不保存任何資料（記憶體內，重新整理即重設），沒有匯入匯出、沒有資料庫；「重來」按鈕回到初始狀態有自動化確認（重設後異動筆數歸 0）。 |
-| 7 | 交付版本 | ⚠️ | 測的版本＝發布版本（GitHub 乾淨 clone 後 `npm ci`＋`npm test`）。GitHub Actions `.github/workflows/test.yml` 每次 push 自動跑。git 歷史全新、作者為 noreply 信箱。CI 在 private repo 的第一次執行結果見下方「測試環境」。 |
+| 7 | 交付版本 | ⚠️ | 測的版本＝發布版本（GitHub 乾淨 clone 後 `npm ci`＋`npm test`）。GitHub Actions `.github/workflows/test.yml` 每次 push 自動跑。git 歷史全新、作者為 noreply 信箱。CI 第一次執行（run 40460698133）通過：8 passed。 |
 | 8 | 出事能恢復 | ✅ | 靜態頁：出錯用 `git revert` 重新部署，Pages 數分鐘生效；沒有資料庫變更、沒有使用者資料。 |
 
 ## 去識別化
@@ -24,12 +24,16 @@
 - 來源：示範站的 `gym/index.html`、`gym/demo/index.html`（白名單複製，來源未修改）。
 - 原示範的**整份團課表、會籍價格、營業時間、優惠方案**來自試點店家的公開資料，已全部換成自編的通用示範資料（42 堂課、教練以 A～K 代號），集中在 `demo/config.js`。
 - 說明頁引用的會員評論原句已改寫成通用說法，不指特定店家；課程名稱改成通用名稱（不使用特定品牌課程名）。
-- `deep_audit.py`：🔴 4、🟡 6，全部是 NOTICE／README 的作者署名與客製化廣告（「留白事務所」「林其衞」），依開源規則刻意保留，判讀為誤判。無金鑰、無電話、無 Email、無我們的網域或 IP、無本機路徑。
+- `deep_audit.py`：🔴 4、🟡 6，全部是 NOTICE／README 的作者署名與客製化廣告（工作室名稱與作者姓名），依開源規則刻意保留，判讀為誤判；乾淨 clone（含 git 歷史）重跑結果相同，「只在歷史裡」0、作者信箱 0。無金鑰、無電話、無 Email、無我們的網域或 IP、無本機路徑。
 - 指定字樣 grep（店名中英文、地址、電話、地名、其他品牌、網域、真實教練名 11 個）：0 筆。
 
 ## 測試環境
 
-- 待乾淨 clone 驗證後補上。
+- 版本：commit 2966a86（第一個 commit；本檔更新為第二個 commit，只改文件）。
+- 乾淨 clone：`git clone https://github.com/Larryveryhandsome/tw-gym-members.git` 到暫存資料夾 → `npm ci` → `npm test`：**8 passed**（Windows 11、Node 24、Playwright 1.64.0 Chromium）。
+- GitHub Actions（ubuntu、Node 22）：**8 passed**。
+- 實際用瀏覽器開乾淨 clone（本機靜態伺服器）：說明頁正常顯示；示範頁 `#auto` 自動跑完，異動公告顯示「B ➜ F」、會員手機收到「代課確定」，console 無錯誤。
+- 沒有後端、金流、登入，串接、越權、金流類測試不適用。
 
 ## 已知問題與限制
 
