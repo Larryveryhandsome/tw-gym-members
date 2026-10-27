@@ -1,0 +1,13 @@
+{
+  "name": "tw-gym-members",
+  "version": "1.0.0",
+  "description": "健身房 LINE 會員關係系統示範：教練請假自動找代課、只通知受影響的會員、關懷很久沒來的會員（純前端、假資料）",
+  "license": "Apache-2.0",
+  "private": true,
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.0"
+  }
+}

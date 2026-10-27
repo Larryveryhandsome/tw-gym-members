@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>健身房 LINE 會員關係系統</title>
+<meta name="description" content="教練請假自動找代課、只通知受影響的會員、自動關心很久沒來的會員。接在健身房現有的 LINE 官方帳號上，免費試用 3 個月。">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
+<style>
+/* 版面概念：像健身房的團課表——灰底課表紙、黑黃色、課程類別色塊、時間用窄體數字 */
+:root{
+ --paper:#e8e8e5; --sheet:#f7f7f5; --ink:#161616; --mut:#5f5f5a; --y:#f5b800;
+ --c-cardio:#7d8fae; --c-full:#5e5e5c; --c-stretch:#86a07f; --c-dance:#c06f6f; --c-spin:#8f5f4d; --c-sling:#dcc3a8;
+ --ok:#2E7D32; --line:#06c755;
+ --disp:"Barlow Condensed","Arial Narrow","Noto Sans TC",sans-serif;
+ --sans:"Noto Sans TC",-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;
+ --ease:cubic-bezier(.2,.8,.2,1);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 17px/1.75 var(--sans);-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.w{max-width:1120px;margin:auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+@media(min-width:700px){.w{padding-left:max(28px,env(safe-area-inset-left,0px));padding-right:max(28px,env(safe-area-inset-right,0px))}}
+section{padding-block:88px}
+@media(max-width:640px){section{padding-block:60px}}
+h1,h2,h3{margin:0;line-height:1.2;text-wrap:balance}
+h2{font-weight:900;font-size:clamp(28px,4.4vw,46px);letter-spacing:-.01em}
+.t{font-family:var(--disp);font-weight:800;letter-spacing:.01em;font-variant-numeric:tabular-nums}
+/* 區段抬頭：像課表上的一格課 */
+.head{display:flex;flex-wrap:wrap;align-items:flex-start;gap:14px 28px;margin-bottom:44px}
+.slot{display:inline-flex;flex-direction:column;justify-content:space-between;width:92px;height:76px;border-radius:12px;padding:8px 10px;color:#fff;flex:none}
+.slot .t{font-size:15px;line-height:1}.slot b{font-size:14px;font-weight:700;line-height:1.2}
+.head .tx{flex:1;min-width:260px}
+.head p{color:var(--mut);margin:12px 0 0;max-width:620px;font-size:17px}
+/* 進場：從可見狀態輕微位移，不從透明開始 */
+.rv{transition:transform .8s var(--ease)}
+.js .rv:not(.in){transform:translateY(18px)}
+@media(prefers-reduced-motion:reduce){.rv,.js .rv:not(.in){transform:none;transition:none}}
+/* nav */
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:11;background:var(--ink)}
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:var(--ink);color:#fff}
+nav .w{display:flex;align-items:center;gap:20px;height:54px}
+nav .mk{font-weight:900;font-size:15px;display:flex;align-items:center;gap:10px}
+nav .mk i{width:14px;height:14px;border-radius:3px;background:var(--y)}
+nav .sp{flex:1}
+nav a.lk{font-size:14px;color:#bdbdb8;text-decoration:none}nav a.lk:hover{color:#fff}
+@media(max-width:860px){nav a.lk{display:none}}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:13px 22px;font-weight:700;text-decoration:none;border:0;cursor:pointer;font-size:16px;border-radius:10px;transition:transform .2s var(--ease),filter .2s}
+.btn:hover{filter:brightness(1.08)}.btn:active{transform:scale(.97)}
+.btn:focus-visible,a:focus-visible{outline:3px solid var(--y);outline-offset:2px}
+.btn.y{background:var(--y);color:#000}.btn.k{background:var(--ink);color:#fff}
+.btn.sm{padding:7px 14px;font-size:14px}
+/* hero */
+.hero{background:var(--ink);color:#fff;padding-block:56px 72px}
+.hero .w{display:grid;grid-template-columns:1.15fr .85fr;gap:48px;align-items:center}
+@media(max-width:900px){.hero .w{grid-template-columns:1fr}}
+.hero .to{font-size:14px;color:#a9a9a3}.hero .to b{color:#fff}
+.hero h1{font-weight:900;font-size:clamp(30px,4.4vw,54px);letter-spacing:-.02em;line-height:1.18;margin-top:18px}
+.hero h1 em{font-style:normal;color:var(--y)}
+.hero h1 .ln{display:block}
+@media(min-width:520px){.hero h1 .ln{white-space:nowrap}}
+.hero .intro{font-size:18px;color:#d2d2cc;max-width:540px;margin:22px 0 0}
+.hero .cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
+.hero .btn.o{box-shadow:inset 0 0 0 2px #fff;color:#fff}
+.chatlog{margin-top:36px;max-width:540px;background:#222220;border-radius:14px;padding:16px 18px;font-size:15px;color:#bdbdb8}
+.chatlog .r{display:grid;grid-template-columns:76px 1fr;gap:8px;margin:4px 0}
+.chatlog .r b{color:#fff;font-weight:700}
+/* phone */
+.phone{width:min(330px,100%);margin:auto;background:#000;border-radius:42px;padding:11px;box-shadow:0 0 0 1px #333}
+.scr{background:#9db2d8;border-radius:32px;height:540px;overflow:hidden;display:flex;flex-direction:column}
+.scr .top{background:#fff;color:#111;padding:14px 18px 10px;font-weight:700;font-size:14px}
+.scr .top small{display:block;color:#888;font-weight:400;font-size:11px}
+.feed{flex:1;padding:10px;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;overflow:hidden}
+.fx{background:#fff;border-radius:16px;overflow:hidden;width:92%;flex:none;font-size:13px;color:#1D1D1F;animation:in .55s var(--ease)}
+.me{align-self:flex-end;background:#85e27b;border-radius:14px;padding:7px 12px;font-size:13px;color:#111;flex:none;animation:in .45s var(--ease)}
+@keyframes in{from{transform:translateY(14px)}to{transform:none}}
+.fx .fh{background:#FAF9F6;padding:13px 14px 10px}
+.fx .br{font-size:9px;font-weight:700;color:#86868B;letter-spacing:.08em}
+.fx .kk{font-size:11px;font-weight:700;margin-top:6px}
+.fx .tt{font-size:16px;font-weight:700;margin-top:2px}
+.fx .fb{padding:10px 14px 12px;line-height:1.5}
+.fx .rw{display:flex;gap:8px}.fx .rw .l{flex:2;color:#86868B;font-size:11px}.fx .rw .v{flex:5}
+.fx .ff{padding:0 12px 12px;display:flex;flex-direction:column;gap:6px}
+.fx .ff span{border-radius:9px;padding:7px;text-align:center;font-weight:600;background:#EFEDE8}.fx .ff span.pr{background:#1D1D1F;color:#fff}
+.rich{background:var(--y);display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:6px}
+.rich span{background:#111;color:#fff;border-radius:5px;text-align:center;font-size:11px;font-weight:700;padding:8px 0}
+.cap{text-align:center;color:#a9a9a3;font-size:14px;margin-top:14px;min-height:48px}
+/* 01 對照 */
+.ledger{display:grid;gap:12px}
+.lg{background:var(--sheet);border-radius:14px;padding:22px 24px;display:grid;grid-template-columns:190px 1fr;gap:20px}
+@media(max-width:720px){.lg{grid-template-columns:1fr;gap:8px;padding:18px}}
+.lg h3{font-size:19px;font-weight:900}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 0;font-size:16px}
+.row+.row{margin-top:10px}
+.row .k{width:52px;flex:none;font-size:12px;font-weight:900}
+.row.b{color:#8b8b85}.row.b .k{color:#a33}.row.b s{text-decoration-color:rgba(170,51,51,.5)}
+.row.a{font-weight:700}.row.a .k{color:var(--ok)}
+.row .sep{color:#b6b6af;padding:0 9px;font-weight:400}
+.row.a mark{background:var(--y);color:#000;border-radius:5px;padding:1px 6px}
+/* 02 時間軸：示範裡的分鐘 */
+.flow{background:var(--sheet)}
+.flow .lg,.flow .rd,.flow .mo{background:#fff}
+.tl{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+@media(max-width:900px){.tl{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.tl{grid-template-columns:1fr}}
+.tile{border-radius:12px;padding:12px 14px 14px;color:#fff;min-height:168px;display:flex;flex-direction:column;transition:transform .5s var(--ease),box-shadow .5s}
+.tile .t{font-size:30px;line-height:1}
+.tile b{font-size:16px;margin:8px 0 4px;display:block}
+.tile span{font-size:13px;line-height:1.55;opacity:.92}
+.tile .who{margin-top:auto;padding-top:10px;font-size:12px;font-weight:700;opacity:.85}
+.tile.lit{transform:translateY(-4px);box-shadow:0 10px 0 -4px var(--y)}
+.tl-foot{margin-top:28px;display:flex;flex-wrap:wrap;gap:14px 20px;align-items:center;color:var(--mut);font-size:15px}
+.tl-foot .big{font-family:var(--disp);font-weight:800;font-size:44px;color:var(--ink);line-height:1}
+/* 03 功能 */
+.feat{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:860px){.feat{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.feat{grid-template-columns:1fr}}
+.ft{background:var(--sheet);border-radius:14px;padding:22px;border-top:6px solid var(--c)}
+.ft h3{font-size:19px;font-weight:900;margin-bottom:6px}
+.ft p{margin:0;color:var(--mut);font-size:15px}
+/* 04 數字 */
+.band{background:var(--ink);color:#eee}
+.band h2{color:#fff}.band .head p{color:#a9a9a3}
+.nums{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:820px){.nums{grid-template-columns:1fr}}
+.nm{background:#222220;border-radius:14px;padding:24px}
+.nm b{font-family:var(--disp);font-weight:800;font-size:clamp(56px,7vw,84px);color:var(--y);line-height:1;font-variant-numeric:tabular-nums}
+.nm p{margin:10px 0 8px;color:#d2d2cc;font-size:16px}
+.nm a{font-size:12px;color:#8d8d87}
+/* 05 試算 */
+.calc{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:820px){.calc{grid-template-columns:1fr}}
+.cin,.cout{background:var(--sheet);border-radius:14px;padding:24px}
+.cin label{display:flex;justify-content:space-between;font-weight:700;font-size:16px}
+.cin input[type=range]{width:100%;accent-color:var(--ink);margin-bottom:18px}
+.cout{background:var(--y)}
+.cout small{font-size:14px}
+.cout b{display:block;font-family:var(--disp);font-weight:800;font-size:clamp(56px,7vw,84px);line-height:1;margin:8px 0;font-variant-numeric:tabular-nums}
+.fine{font-size:13px;color:var(--mut)}
+/* 06 之後＋LINE Pay */
+.road{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:820px){.road{grid-template-columns:1fr}}
+.rd{background:var(--sheet);border-radius:14px;padding:22px}
+.rd .ph{font-size:13px;font-weight:700;color:var(--mut)}
+.rd h3{font-size:19px;font-weight:900;margin:4px 0 10px}
+.rd ul{margin:0;padding-left:18px;font-size:15px;color:#3b3b38}.rd li{margin-bottom:3px}
+.pay{margin-top:12px;background:#fff;border-radius:14px;padding:30px;display:grid;grid-template-columns:.9fr 1.1fr;gap:36px;border-left:8px solid var(--line)}
+@media(max-width:820px){.pay{grid-template-columns:1fr;padding:22px;gap:18px}}
+.pay .lp{font-weight:900;color:var(--line)}
+.pay h3{font-size:clamp(22px,3vw,30px);font-weight:900;margin:6px 0 10px}
+.pay p{color:var(--mut);margin:0;font-size:16px}
+.pay ol{margin:0;padding-left:20px;font-size:16px}.pay li{margin-bottom:10px}
+/* 07 案例 */
+.cases{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:860px){.cases{grid-template-columns:1fr}}
+.cs{background:var(--sheet);border-radius:14px;padding:26px;display:flex;flex-direction:column}
+.cs .co{font-size:13px;color:var(--mut)}
+.cs h3{font-size:24px;font-weight:900;margin:6px 0 14px}
+.chain{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.chain span{font-size:13px;font-weight:700;color:#fff;background:var(--ink);border-radius:7px;padding:5px 9px}
+.chain span.hl{background:var(--y);color:#000}
+.cs ul{margin:0;padding-left:18px;color:#3b3b38;font-size:15px}.cs li{margin-bottom:6px}
+.facts{display:flex;gap:26px;margin-top:auto;padding-top:18px}
+.facts b{display:block;font-family:var(--disp);font-weight:800;font-size:38px;line-height:1}
+.facts small{font-size:12px;color:var(--mut)}
+/* 08 試用 */
+.months{display:grid;grid-template-columns:repeat(3,1fr) 1.15fr;gap:12px}
+@media(max-width:900px){.months{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.months{grid-template-columns:1fr}}
+.mo{background:var(--sheet);border-radius:14px;padding:22px}
+.mo .t{font-size:44px;line-height:1}.mo .t small{font:700 14px var(--sans);color:var(--mut);margin-left:6px}
+.mo ul{margin:12px 0 0;padding-left:18px;font-size:15px;color:#3b3b38}
+.flow .mo.no,.mo.no{background:var(--ink);color:#fff}.mo.no h3{color:var(--y);font-size:20px;font-weight:900}.mo.no ul{color:#d2d2cc}
+/* contact */
+.contact{background:var(--y)}
+.contact .w{display:grid;grid-template-columns:1.2fr .8fr;gap:40px;align-items:end}
+@media(max-width:820px){.contact .w{grid-template-columns:1fr}}
+.contact h2{font-size:clamp(32px,5vw,54px)}
+.contact p{font-size:18px;margin:16px 0 0;max-width:560px}
+.lineadd{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--line);color:#fff;text-decoration:none;padding:18px 22px;border-radius:12px;font-weight:900;font-size:19px}
+.lineadd small{display:block;font-weight:500;font-size:13px;opacity:.9}
+.lineadd:hover{filter:brightness(1.05)}
+.contact .alt{display:inline-block;margin-top:14px;font-weight:700}
+footer{background:var(--ink);color:#8d8d87;font-size:13px;padding-block:24px}
+footer a{color:var(--y)}
+/* 會員的聲音 */
+.voice{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+@media(max-width:820px){.voice{grid-template-columns:1fr}}
+.qt{margin:0;background:var(--ink);color:#fff;border-radius:14px;padding:24px 26px;display:flex;flex-direction:column;gap:14px}
+.qt blockquote{margin:0;font-size:clamp(18px,2.2vw,22px);font-weight:700;line-height:1.55}
+.qt blockquote::before{content:"";display:block;width:28px;height:4px;border-radius:2px;background:var(--y);margin-bottom:14px}
+.qt figcaption{font-size:13px;color:#a9a9a3;margin-top:auto}
+.qt figcaption b{color:var(--y);font-weight:700}
+.sig{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:28px}
+@media(max-width:820px){.sig{grid-template-columns:1fr}}
+.sg{background:var(--sheet);border-radius:14px;padding:22px 24px}
+.sg h3{font-size:18px;font-weight:900;margin-bottom:4px}
+.sg p{margin:0 0 14px;color:var(--mut);font-size:15px}
+.bars{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;align-items:end;height:150px;border-bottom:2px solid var(--ink)}
+.bar{display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;gap:4px}
+.bar i{display:block;width:100%;max-width:46px;border-radius:6px 6px 0 0;background:var(--c-cardio);height:var(--h)}
+.bar.now i{background:var(--c-dance)}
+.bar b{font-family:var(--disp);font-weight:800;font-size:20px;line-height:1;font-variant-numeric:tabular-nums}
+.barl{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:6px;font-size:12px;color:var(--mut);text-align:center}
+.thq{border-left:4px solid var(--y);background:#fff;border-radius:0 10px 10px 0;padding:10px 14px;font-weight:700;font-size:16px;margin-bottom:10px}
+.thq small{display:block;font-weight:400;color:var(--mut);font-size:12px;margin-top:2px}
+.sg ul{margin:0;padding-left:18px;font-size:15px;color:#3b3b38}
+.subhead{font-size:14px;font-weight:900;letter-spacing:.06em;color:var(--mut);margin:0 0 12px}
+.pains{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:26px;max-width:600px}
+@media(max-width:560px){.pains{grid-template-columns:1fr}}
+.pains div{background:#222220;border-radius:12px;padding:12px 14px;font-size:14px;color:#d2d2cc;line-height:1.5}
+.pains b{display:block;color:#fff;font-size:15px;margin-bottom:2px}
+.pains i{display:block;width:22px;height:4px;border-radius:2px;margin-bottom:8px;font-style:normal}
+.obs{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:28px}
+@media(max-width:860px){.obs{grid-template-columns:1fr}}
+.obs .qt blockquote{font-size:clamp(17px,2vw,20px)}
+</style>
+</head>
+<body>
+<nav><div class="w"><span class="mk"><i></i>健身房 LINE 會員關係系統</span><span class="sp"></span>
+<a class="lk" href="#s1">常見問題</a><a class="lk" href="#s2">代課流程</a><a class="lk" href="#s6">LINE Pay</a><a class="lk" href="#s7">做過的系統</a><a class="lk" href="#s8">試用</a>
+<a class="btn y sm" href="demo/index.html#auto">看示範</a></div></nav>
+
+<header class="hero"><div class="w">
+  <div>
+    <div class="to">給非連鎖健身房、運動工作室的老闆</div>
+    <h1><span class="ln">教練臨時請假、</span><span class="ln">會員很久沒來，</span><span class="ln">還在<em>靠人手</em>處理嗎？</span></h1>
+    <p class="intro">這套系統接在你現有的 LINE 官方帳號上。教練按一下請假，它自己找代課老師、改好課表，只通知常上那堂課的會員；很久沒來的會員，它也會自動去關心。入場和收款系統都不用換。</p>
+    <div class="pains">
+      <div><i style="background:var(--c-dance)"></i><b>代課</b>群組喊人、做圖、會員常常沒看到</div>
+      <div><i style="background:var(--c-cardio)"></i><b>流失</b>會員沒來，到期才發現他不續了</div>
+      <div><i style="background:var(--c-stretch)"></i><b>回訊息</b>課表、價格、停車，每天重複問</div>
+    </div>
+    <div class="cta"><a class="btn y" href="demo/index.html#auto">看 1 分鐘示範 →</a><a class="btn o" href="#s8">免費試用 3 個月</a></div>
+  </div>
+  <div>
+    <div class="phone"><div class="scr">
+      <div class="top">你的健身房<small>官方帳號・自動通知</small></div>
+      <div class="feed" id="feed"></div>
+      <div class="rich"><span>團體課表</span><span>每週異動</span><span>我的課</span><span>會籍方案</span><span>器材報修</span><span>最新優惠</span></div>
+    </div></div>
+    <div class="cap" id="cap">教練按下請假，常上這堂課的會員先收到通知</div>
+  </div>
+</div></header>
+
+<section id="s1"><div class="w">
+  <div class="head"><span class="slot" style="background:var(--c-dance)"><span class="t">01</span><b>常見問題</b></span><div class="tx"><h2>非連鎖健身房最常卡住的地方</h2><p>整理健身房公開評論與社群討論裡常見的抱怨（以下為改寫，不指特定店家）。評分再高的館，也常有下面這幾件事。</p></div></div>
+  <div class="obs">
+    <figure class="qt"><blockquote>「公告只貼在櫃台，LINE 上什麼都沒看到。」</blockquote><figcaption>會員評論裡最常見的抱怨：公告只在現場，線上看不到</figcaption></figure>
+    <figure class="qt"><blockquote>「網路上的營業時間跟現場不一樣，白跑一趟。」</blockquote><figcaption>營業時間一改，各平台沒有同步更新</figcaption></figure>
+    <figure class="qt"><blockquote>「有沒有人推薦，到底要選哪一家健身房？」</blockquote><figcaption>社群上一直有人在問，館方很少出來回</figcaption></figure>
+  </div>
+  <p class="subhead">每週都在重複的四件事｜劃掉的是現在的做法，黃色是交給系統後最省事的那一步</p>
+  <div class="ledger" id="ledger"></div>
+</div></section>
+
+<section id="s2" class="flow"><div class="w">
+  <div class="head"><span class="slot" style="background:var(--c-cardio)"><span class="t">02</span><b>代課流程</b></span><div class="tx"><h2>週五中午的瑜珈課，<br>老師早上臨時請假</h2><p>下面是示範裡跑出來的順序。教練只做第一步，其他步驟都由系統完成；只有找不到人代課時，才會請店長決定停課還是改時間。</p></div></div>
+  <div class="tl rv" id="tl">
+    <div class="tile" style="background:var(--c-dance)"><span class="t">09:02</span><b>教練按請假</b><span>在 LINE 點一下，選「身體不適」</span><div class="who">原本的老師</div></div>
+    <div class="tile" style="background:var(--c-cardio)"><span class="t">09:02</span><b>先通知會員</b><span>只私訊常上這堂課的會員，其他人不打擾</span><div class="who">系統</div></div>
+    <div class="tile" style="background:var(--c-stretch)"><span class="t">09:03</span><b>找代課老師</b><span>帶過同一門課、那個時段沒課、這個月代得少的先問</span><div class="who">系統</div></div>
+    <div class="tile" style="background:var(--c-full)"><span class="t">09:03</span><b>邀請第一位老師</b><span>10 分鐘內沒回覆，就自動改問下一位</span><div class="who">系統</div></div>
+    <div class="tile" style="background:var(--c-spin)"><span class="t">09:08</span><b>有人接下，課表改好</b><span>會員收到「代課確定」，按「我會到」或「這次不去」</span><div class="who">系統</div></div>
+    <div class="tile" style="background:var(--c-sling);color:#3a2c20"><span class="t">09:09</span><b>異動公告做好</b><span>本週異動公告自動整理好，按一下推給全部好友</span><div class="who">系統</div></div>
+  </div>
+  <div class="tl-foot"><span class="big">約 7 分鐘</span><span>示範裡從請假到會員收到「代課確定」的時間；實際快慢要看代課老師多快回覆。</span><a class="btn k" href="demo/index.html#auto">自己按一次看看 →</a></div>
+</div></section>
+
+<section id="s3"><div class="w">
+  <div class="head"><span class="slot" style="background:var(--c-stretch)"><span class="t">03</span><b>功能</b></span><div class="tx"><h2>店長、教練、會員<br>都用現在的官方 LINE</h2><p>會員不用另外下載 App，圖文選單也可以沿用你現在的版本。</p></div></div>
+  <div class="feat">
+    <div class="ft rv" style="--c:var(--c-cardio)"><h3>代課與異動</h3><p>請假、改時間、停課，只通知受影響的會員，課表和公告同步更新。</p></div>
+    <div class="ft rv" style="--c:var(--c-dance)"><h3>關心很久沒來的會員</h3><p>14、30、60 天沒來，分別送不同的訊息，提到他常上的課和熟悉的教練。會籍到期前 30 天提醒續約。</p></div>
+    <div class="ft rv" style="--c:var(--c-stretch)"><h3>24 小時自動回覆</h3><p>課表、會籍方案、營業時間、停車、優惠活動都能自動回；回答不了的才轉給櫃台。</p></div>
+    <div class="ft rv" style="--c:var(--c-spin)"><h3>器材登錄與報修</h3><p>會員在 LINE 點選哪一台、拍照回報，櫃台一鍵標示「暫停使用」，修好後自動回覆回報的人。</p></div>
+    <div class="ft rv" style="--c:var(--c-full)"><h3>公告推播</h3><p>營業時間異動、安全提醒、訓練小知識。可以只發給某類課的常客，發送前先給店長看過。</p></div>
+    <div class="ft rv" style="--c:var(--c-sling)"><h3>每月一頁成效</h3><p>這個月送出幾則關心、回來幾位、處理了幾次代課，月底整理成一頁。</p></div>
+  </div>
+</div></section>
+
+<section class="band" id="s4"><div class="w">
+  <div class="head"><span class="slot" style="background:var(--y);color:#000"><span class="t">04</span><b>為什麼</b></span><div class="tx"><h2>留住一位會員，<br>比找一位新會員划算</h2><p>團課和熟悉的教練，是非連鎖健身房最能留住會員的地方。</p></div></div>
+  <div class="nums">
+    <div class="nm rv"><b data-n="66.4" data-s="%">66.4%</b><p>全球健身房會員的年留存率，也就是一年大約流失三分之一的會員。</p><a href="https://www.healthandfitness.org/2025-fitness-industry-benchmarking-report/" target="_blank" rel="noopener">HFA 2025 產業報告</a></div>
+    <div class="nm rv"><b data-n="56" data-p="+" data-s="%">+56%</b><p>只用器材、不上團課的會員，取消會籍的風險比上團課的人高 56%。</p><a href="https://www.lesmills.com/clubs-and-facilities/research-insights/acquisition-retention/trp-study-group-ex-is-key-retention-driver/" target="_blank" rel="noopener">Les Mills／TRP 英國研究</a></div>
+    <div class="nm rv"><b data-n="106">106</b><p>2024 年台灣新成立的非連鎖健身房家數，連續兩年破百。競爭變多，留住老會員更重要。</p><a href="https://today.line.me/tw/v3/article/rmwlqpY" target="_blank" rel="noopener">LINE TODAY 轉載關鍵評論網</a></div>
+  </div>
+</div></section>
+
+<section id="s5"><div class="w">
+  <div class="head"><span class="slot" style="background:var(--c-spin)"><span class="t">05</span><b>試算</b></span><div class="tx"><h2>每個月喚回幾位，就值回票價？</h2><p>拉一拉下面三條，用你自己館裡的情況估估看。</p></div></div>
+  <div class="calc">
+    <div class="cin">
+      <label for="L">30 天以上沒來的會員<span><span id="vL">40</span> 位</span></label><input type="range" id="L" min="5" max="300" value="40">
+      <label for="R">被訊息喚回來的比例<span><span id="vR">15</span>%</span></label><input type="range" id="R" min="5" max="40" value="15">
+      <label for="F">平均月費<span><span id="vF">1200</span> 元</span></label><input type="range" id="F" min="500" max="3000" step="50" value="1200">
+    </div>
+    <div class="cout"><small>每個月可能多留住的會籍收入</small><b id="out">NT$ 7,200</b><small id="out2">約 6 位會員繼續回來</small><p class="fine" style="color:#4a3a00">這只是試算，實際比例因館而異；試用期間會用你館裡的實際數據驗證。</p></div>
+  </div>
+</div></section>
+
+<section id="s6" class="flow"><div class="w">
+  <div class="head"><span class="slot" style="background:var(--c-full)"><span class="t">06</span><b>之後</b></span><div class="tx"><h2>先解決最痛的，需要什麼再加</h2><p>每個功能都能單獨開關；加新功能，不會影響已經在跑的部分。</p></div></div>
+  <div class="road">
+    <div class="rd rv"><div class="ph">第一階段・試用就有</div><h3>通知與代課</h3><ul><li>課表變成可以查的資料</li><li>請假、代課、改時間</li><li>LINE 自動回覆</li><li>器材報修、公告推播</li></ul></div>
+    <div class="rd rv"><div class="ph">第二階段</div><h3>會員關係</h3><ul><li>14／30／60 天關心與喚回</li><li>續約提醒</li><li>課後請會員評分，滿意的才邀請寫 Google 評論</li><li>每月成效</li></ul></div>
+    <div class="rd rv"><div class="ph">第三階段・看需求</div><h3>付款與串接</h3><ul><li>LINE Pay 線上付款</li><li>飛輪、懸吊這類需預約的課，額滿自動候補</li><li>揪朋友入會、推薦追蹤</li><li>串接現有入場系統</li><li>Threads 海巡：每週整理在地人問健身房的貼文，回覆前由店長審核</li></ul></div>
+  </div>
+  <div class="pay rv">
+    <div><div class="lp">LINE Pay</div><h3>月費、單日票、付費課，在 LINE 裡就能付</h3><p>這套付款流程已經在我們的家事清潔系統上使用：客人按「LINE Pay 付款」，付完系統自動確認收款，不用人工對帳。</p></div>
+    <ol>
+      <li>LINE Pay 商店金鑰由健身房自己在後台設定，我們不經手，也看不到。</li>
+      <li>先用測試模式跑一遍（不會真的扣款），確定沒問題再切成正式。</li>
+      <li>還沒申請 LINE Pay 也沒關係：沒設定時付款按鈕自動隱藏，照常匯款或在櫃台付。</li>
+      <li>年費這類預收費用，原則上會依健身中心相關規定一起規劃。</li>
+    </ol>
+  </div>
+</div></section>
+
+<section id="s7"><div class="w">
+  <div class="head"><span class="slot" style="background:var(--c-cardio)"><span class="t">07</span><b>做過的</b></span><div class="tx"><h2>每天都在用的兩套系統</h2><p>這套健身房系統，就是從下面兩套正在營運的系統改過來的。</p></div></div>
+  <div class="cases">
+    <div class="cs rv">
+      <div class="co">家事清潔品牌</div><h3>家事清潔 LINE 營運系統</h3>
+      <div class="chain"><span>LINE 估價</span><span>報價簽收</span><span>自動派工</span><span class="hl">LINE Pay 付款</span><span>完工照片回報</span></div>
+      <ul>
+        <li>清潔夥伴臨時請假，系統通知管理群，再依分級一位一位找人遞補。健身房的代課流程就是照這個改的。</li>
+        <li>LINE Pay 線上付款，付款成功自動確認收款、排定工作。</li>
+        <li>群發公告先送審核，核准才發；同一類審核做久了可以改成免審。</li>
+        <li>報價沒簽、照片沒傳齊，系統會自己提醒客人。</li>
+      </ul>
+      <div class="facts"><div><b>80+</b><small>功能模組</small></div><div><b>100+</b><small>組自動測試</small></div><div><b>3</b><small>個品牌共用</small></div></div>
+    </div>
+    <div class="cs rv">
+      <div class="co">不動產仲介店</div><h3>房仲店 LINE AI 助理</h3>
+      <div class="chain"><span>群組對話</span><span>整理客戶需求</span><span>配對物件</span><span class="hl">推播給客戶</span></div>
+      <ul>
+        <li>在工作群組裡待命，被點名或私訊時才回答。</li>
+        <li>每天自動整理群組狀況，私訊日報給店長。</li>
+        <li>從對話判斷買方、租客要什麼，自動配出合適的物件推送。</li>
+        <li>客戶追蹤表自動打勾，誰今天有跟進一眼就看得到。</li>
+      </ul>
+      <div class="facts"><div><b>24h</b><small>全天運作</small></div><div><b>每天</b><small>自動日報</small></div></div>
+    </div>
+  </div>
+  <p class="fine" style="margin-top:14px">案例只說明系統功能，不包含任何客戶資料。</p>
+</div></section>
+
+<section id="s8" class="flow"><div class="w">
+  <div class="head"><span class="slot" style="background:var(--c-stretch)"><span class="t">08</span><b>試用</b></span><div class="tx"><h2>先免費用 3 個月，有效再談收費</h2><p>試用期間的費用都由我們負擔。等會員資料架構建好、系統真的開始運作後才收費；收費前會先給書面報價，您同意了才生效。</p></div></div>
+  <div class="months">
+    <div class="mo rv"><div class="t">1<small>個月</small></div><ul><li>課表變成資料</li><li>請假、代課上線</li><li>LINE 自動回覆</li></ul></div>
+    <div class="mo rv"><div class="t">2<small>個月</small></div><ul><li>關心很久沒來的會員</li><li>器材報修、保養提醒</li><li>公告推播</li></ul></div>
+    <div class="mo rv"><div class="t">3<small>個月</small></div><ul><li>看數據、調整規則</li><li>每月成效</li><li>決定要不要繼續</li></ul></div>
+    <div class="mo no rv"><h3>您不需要</h3><ul><li>換掉現在的入場、收款系統</li><li>讓會員下載新 App</li><li>付任何試用費用</li></ul></div>
+  </div>
+  <p class="fine" style="margin-top:16px">原則上：試用期間額外產生的 LINE 訊息費用，以雙方事先約定的發送量為準；會員資料歸健身房所有，我們只在提供服務的範圍內處理，不續用時依健身房指示刪除或返還。成效以試用期間的實際資料為準，不代表保證。</p>
+</div></section>
+
+<section class="contact"><div class="w">
+  <div><h2>給我們 5 分鐘，現場示範一次。</h2><p>可以約您方便的時間到館裡，用手機示範一次「教練請假到會員收到通知」的完整過程；也可以先加 LINE 聊聊你館裡現在最頭痛的事。</p></div>
+  <div>
+    <a class="lineadd" href="https://line.me/R/ti/p/@812ibtir" target="_blank" rel="noopener"><span>加 LINE 約時間<small>@812ibtir</small></span><span>→</span></a>
+    <a class="alt" href="demo/index.html#auto">先自己看示範 →</a>
+  </div>
+</div></section>
+
+<footer><div class="w">示範內容與會員、器材、報修資料皆為虛構。　需要客製化？加 LINE <a href="https://line.me/R/ti/p/@812ibtir" target="_blank" rel="noopener">@812ibtir</a></div></footer>
+
+<script>
+document.documentElement.classList.add('js');
+const L1=[
+ ['教練臨時請假',['群組喊人代課','做異動公告圖','上傳雲端相簿','會員自己點選單看'],['教練在 LINE 按請假','*系統找好代課','課表自動改好','只私訊常上這堂的會員']],
+ ['會員問「下個月課表」',['等專人回覆','回「月底公告」'],['*24 小時自動回覆','還沒出來就登記，一公告就通知']],
+ ['會員很久沒來',['沒人發現','到期才知道不續'],['入場紀錄自動分級','*帶著他常上的課去關心','回「我要去」就記下來']],
+ ['器材壞了',['口頭跟櫃台說','交班後忘記'],['LINE 點選＋拍照','*櫃台一鍵暫停使用','修好自動回覆']]];
+document.getElementById('ledger').innerHTML=L1.map(([q,o,n])=>`<div class="lg rv"><h3>${q}</h3><div>
+ <div class="row b"><span class="k">現在</span>${o.map((s,i)=>(i?'<span class="sep">→</span>':'')+`<s>${s}</s>`).join('')}</div>
+ <div class="row a"><span class="k">之後</span>${n.map((s,i)=>(i?'<span class="sep">→</span>':'')+(s[0]==='*'?`<mark>${s.slice(1)}</mark>`:`<span>${s}</span>`)).join('')}</div></div></div>`).join('');
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;const t=e.target;t.classList.add('in');io.unobserve(t);
+  if(t.id==='tl'&&!reduce)[...t.children].forEach((x,i)=>setTimeout(()=>{x.classList.add('lit');setTimeout(()=>x.classList.remove('lit'),700)},i*380));
+  if(t.dataset&&t.dataset.n)count(t)}),{threshold:.2});
+document.querySelectorAll('.rv,.nm b').forEach(el=>io.observe(el));
+function count(el){if(reduce)return;const n=+el.dataset.n,p=el.dataset.p||'',s=el.dataset.s||'',d=n%1?1:0,t0=performance.now();(function f(t){const k=Math.min(1,(t-t0)/1100),e=1-Math.pow(1-k,3);el.textContent=p+(n*e).toFixed(d)+s;if(k<1)requestAnimationFrame(f)})(t0)}
+const S=[
+ [{kk:'課程異動通知',col:'#C47F00',tt:'週五 12:10 哈達瑜珈',body:'原本的老師臨時請假，正在安排代課老師，確定後馬上通知你。'},'教練按下請假，常上這堂課的會員先收到通知'],
+ [{kk:'代課確定',col:'#2E7D32',tt:'週五 12:10 哈達瑜珈',body:'<div class="rw"><span class="l">老師</span><span class="v">B 老師（代 A 老師）</span></div><div class="rw"><span class="l">時間</span><span class="v">不變</span></div>',btns:['我會到','這次不去']},'系統找到帶過哈達瑜珈的老師，對方接下了'],
+ ['我會到','會員按一下回覆，店長知道會有幾個人來'],
+ [{kk:'本週團課異動',col:'#0A84FF',tt:'週五 哈達瑜珈',body:'A 老師 → B 老師 代課<br>造成不便，敬請見諒。'},'本週異動公告自動整理好，按一下就推播']];
+const feed=document.getElementById('feed'),cap=document.getElementById('cap');
+function node(m){const d=document.createElement('div');
+  if(typeof m==='string'){d.className='me';d.textContent=m}
+  else{d.className='fx';d.innerHTML=`<div class="fh"><div class="br">你的健身房</div><div class="kk" style="color:${m.col}">${m.kk}</div><div class="tt">${m.tt}</div></div><div class="fb">${m.body}</div>${m.btns?`<div class="ff">${m.btns.map((b,i)=>`<span class="${i?'':'pr'}">${b}</span>`).join('')}</div>`:''}`}
+  return d}
+function trim(){while(feed.scrollHeight>feed.clientHeight&&feed.children.length>2)feed.removeChild(feed.firstChild)}
+feed.appendChild(node(S[0][0]));feed.appendChild(node(S[1][0]));trim();cap.textContent=S[1][1];
+let si=2;
+function step(){if(si>=S.length){si=0;feed.innerHTML=''}const [m,c]=S[si];feed.appendChild(node(m));cap.textContent=c;trim();si++}
+if(!reduce)setInterval(step,2800);
+const L=document.getElementById('L'),R=document.getElementById('R'),F=document.getElementById('F');
+function calc(){const n=Math.round(L.value*R.value/100);vL.textContent=L.value;vR.textContent=R.value;vF.textContent=F.value;out.textContent='NT$ '+(n*F.value).toLocaleString();out2.textContent=`約 ${n} 位會員繼續回來`}
+[L,R,F].forEach(e=>e.oninput=calc);calc();
+</script>
+</body>
+</html>

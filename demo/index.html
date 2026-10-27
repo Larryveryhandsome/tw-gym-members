@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>健身房會員關係系統｜通用示範</title>
+<style>
+:root{--y:#f5b800;--k:#1b1b1b;--bg:#f4f2ec;--card:#fff;--line:#e3dfd4;--mut:#77736a;--ok:#2f8a4f;--warn:#c9761a;--bad:#c23b3b;--lineg:#06c755}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.55 -apple-system,"Noto Sans TC","Microsoft JhengHei",sans-serif;background:var(--bg);color:var(--k)}
+header{background:var(--k);color:#fff;padding:10px 16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;position:sticky;top:0;z-index:20}
+header .logo{font-weight:800;color:var(--y);font-size:17px;margin-right:6px}
+header .sub{color:#bbb;font-size:12px}
+.roles{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.roles button,.btn{border:0;border-radius:8px;padding:7px 12px;cursor:pointer;font:inherit;font-weight:600}
+.roles button{background:#333;color:#ddd}.roles button.on{background:var(--y);color:#000}
+.roles .demo{background:var(--lineg);color:#fff}
+.notice{background:#fff7d6;border-bottom:1px solid #ecd98a;padding:6px 16px;font-size:12px;color:#6b5a12}
+.wrap{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:16px;padding:16px;max-width:1400px;margin:auto}
+@media(max-width:980px){.wrap{grid-template-columns:minmax(0,1fr)}}
+main,aside{min-width:0}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:12px}
+.tabs button{background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 12px;cursor:pointer;font:inherit}
+.tabs button.on{background:var(--k);color:#fff;border-color:var(--k)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+.card h3{margin:0 0 8px;font-size:15px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px}
+.kpi b{font-size:26px;display:block}.kpi span{color:var(--mut);font-size:12px}
+.btn{background:var(--k);color:#fff}.btn.y{background:var(--y);color:#000}.btn.g{background:var(--lineg)}.btn.ghost{background:#fff;color:var(--k);border:1px solid var(--line)}.btn.red{background:var(--bad)}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.sm{padding:4px 9px;font-size:12px}
+table{border-collapse:collapse;width:100%}th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{font-size:12px;color:var(--mut);font-weight:600}
+.tbl{overflow-x:auto}
+.tag{display:inline-block;border-radius:999px;padding:1px 8px;font-size:12px;font-weight:600;background:#eee}
+.t-ok{background:#ddf3e3;color:var(--ok)}.t-warn{background:#fdecd5;color:var(--warn)}.t-bad{background:#fadede;color:var(--bad)}.t-info{background:#e2ebfa;color:#2f5ea8}
+.grid7{display:grid;grid-template-columns:repeat(7,minmax(118px,1fr));gap:6px;min-width:860px}
+.dayh{background:#555;color:#fff;border-radius:8px;text-align:center;padding:4px;font-weight:700}
+.cls{border-radius:8px;padding:5px 7px;margin-bottom:5px;cursor:pointer;font-size:12px;line-height:1.3;color:#fff;position:relative}
+.cls .t{opacity:.9}.cls .n{font-weight:700;font-size:13px}.cls .c{text-align:right}
+.cls.changed{outline:3px solid var(--bad)}.cls.sub{outline:3px solid var(--lineg)}
+.cls .badge{position:absolute;top:-6px;right:-4px;background:var(--bad);color:#fff;border-radius:6px;padding:0 5px;font-size:11px}
+.cls.sub .badge{background:var(--lineg)}
+/* 課程類別顏色由 config.js 的 categories 產生 */
+.legend span{display:inline-flex;align-items:center;gap:4px;margin-right:10px;font-size:12px}.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.flow{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.step{flex:1 1 150px;border:1px dashed var(--line);border-radius:10px;padding:8px;font-size:12px;color:var(--mut);background:#fafaf7}
+.step.done{border:1px solid var(--ok);color:var(--k);background:#effaf2}.step.now{border:2px solid var(--y);color:var(--k);background:#fffaf0}
+.step b{display:block;font-size:13px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+select,input,textarea{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:#fff;max-width:100%}
+textarea{width:100%}
+.mut{color:var(--mut);font-size:12px}
+.poster{background:#16384f;color:#fff;border-radius:12px;padding:12px}
+.poster h4{margin:0 0 8px;text-align:center;font-size:20px;letter-spacing:4px}
+.poster .r{display:flex;gap:8px;align-items:center;background:#fff;color:#222;border-radius:8px;padding:6px 8px;margin-bottom:6px;font-size:13px}
+/* phone */
+.phone{position:sticky;top:64px;background:#111;border-radius:30px;padding:12px;height:calc(100vh - 90px);min-height:560px;max-height:820px;display:flex;flex-direction:column}
+@media(max-width:980px){.phone{position:static;height:680px}}
+.ph-top{color:#fff;display:flex;align-items:center;gap:6px;padding:4px 6px 8px}
+.ph-top select{flex:1;background:#222;color:#fff;border-color:#333}
+.chat{flex:1;overflow-y:auto;background:#8aa6d1;border-radius:18px 18px 0 0;padding:10px}
+.chat .hd{background:#fff;border-radius:10px;padding:6px 10px;font-weight:700;margin-bottom:8px;font-size:13px}
+.chat .hd small{display:block;color:var(--lineg);font-weight:600}
+.msg{max-width:86%;background:#fff;border-radius:14px;padding:8px 10px;margin:6px 0;font-size:13px;white-space:pre-wrap;word-break:break-word}
+.msg.me{background:#85e27b;margin-left:auto}
+.msg .tm{display:block;font-size:10px;color:#888;margin-top:2px}
+.msg .acts{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.msg .acts button{flex:1;border:1px solid #06c755;color:#06a347;background:#fff;border-radius:8px;padding:5px;cursor:pointer;font:inherit;font-size:12px;font-weight:700}
+.msg .acts button:disabled{opacity:.4}
+.rich{background:var(--y);display:grid;grid-template-columns:repeat(3,1fr);gap:5px;padding:6px}
+.rich button{background:#1b1b1b;color:#fff;border:0;border-radius:6px;padding:10px 2px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.ph-in{display:flex;gap:6px;background:#fff;padding:6px;border-radius:0 0 18px 18px}
+.ph-in input{flex:1}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#222;color:#fff;padding:10px 16px;border-radius:10px;z-index:99;opacity:0;transition:.3s;pointer-events:none;max-width:90vw}
+.toast.on{opacity:1}
+.log li{margin-bottom:4px}
+.hide{display:none!important}
+.cta{background:var(--k);color:#fff;border-radius:12px;padding:12px 14px;margin:0 16px 16px;max-width:1368px;margin-inline:auto}
+.cta b{color:var(--y)}
+dialog{border:0;border-radius:14px;max-width:520px;width:92vw;padding:16px}
+
+/* ===== v2：Apple 式細節＋LINE 圖卡＋流程區塊 ===== */
+header{background:rgba(27,27,27,.86);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px)}
+.card{border-radius:18px;box-shadow:0 1px 2px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.04);border-color:#ece8de}
+.kpi{border-radius:18px;box-shadow:0 1px 2px rgba(0,0,0,.04);transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+.kpi:hover{transform:translateY(-3px)}
+.tabs{background:#e9e5da;border-radius:14px;padding:4px;display:inline-flex;gap:2px;max-width:100%}
+.tabs button{border:0;background:transparent;border-radius:10px;padding:7px 14px;transition:background .25s,color .25s,box-shadow .25s}
+.tabs button.on{background:#fff;color:var(--k);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.view-in{animation:viewIn .45s cubic-bezier(.2,.8,.2,1)}
+@keyframes viewIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.btn{transition:transform .2s,filter .2s}.btn:active{transform:scale(.96)}.btn:hover{filter:brightness(1.08)}
+/* 流程：區塊＋箭頭 */
+.lane{display:flex;align-items:stretch;flex-wrap:wrap;gap:6px 0;margin:6px 0}
+.lane .lb{width:74px;flex:none;font-size:12px;font-weight:800;letter-spacing:.06em;display:flex;align-items:center}
+.lane.old .lb{color:var(--bad)}.lane.new .lb{color:var(--ok)}
+.chip{display:flex;align-items:center;gap:6px;border-radius:12px;padding:8px 12px;font-size:13px;font-weight:600;line-height:1.35;max-width:220px}
+.lane.old .chip{background:#f1eee6;color:#6d685d}
+.lane.new .chip{background:#e7f6ec;color:#1e6b39}
+.lane.new .chip.key{background:#1d1d1f;color:#fff}
+.arr{display:flex;align-items:center;padding:0 6px;color:#b9b3a5;font-weight:900}
+.lane.new .arr{color:var(--ok)}
+.cmp{border-top:1px solid var(--line);padding:12px 0}
+.cmp:first-of-type{border-top:0}
+.cmp h4{margin:0 0 4px;font-size:14px}
+.pipe{display:flex;flex-wrap:wrap;align-items:center;gap:8px 0;margin:10px 0}
+.node{display:flex;flex-direction:column;justify-content:center;min-width:112px;border-radius:14px;padding:10px 12px;background:#f4f2ec;color:#8a857a;font-size:12px;border:1px solid transparent;transition:all .4s}
+.node b{font-size:13px;color:inherit}
+.node .ic{font-size:11px;font-weight:800;letter-spacing:.08em;opacity:.7}
+.node.done{background:#e7f6ec;color:#1e6b39}
+.node.now{background:#fff8e0;color:#6b5200;border-color:var(--y);animation:pulse 1.6s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(245,184,0,.55)}70%{box-shadow:0 0 0 10px rgba(245,184,0,0)}100%{box-shadow:0 0 0 0 rgba(245,184,0,0)}}
+.link{width:26px;height:2px;background:#d8d3c6;position:relative;margin:0 2px;flex:none}
+.link::after{content:"";position:absolute;right:-1px;top:-4px;border:5px solid transparent;border-left:7px solid #d8d3c6;border-right:0}
+.link.done{background:var(--ok)}.link.done::after{border-left-color:var(--ok)}
+/* 手機：LINE 圖卡樣式（LINE Flex） */
+.chat{background:#9db2d8}
+.fx{width:88%;background:#fff;border-radius:18px;overflow:hidden;margin:8px 0;box-shadow:0 1px 2px rgba(0,0,0,.08);font-family:-apple-system,"SF Pro Text","Noto Sans TC",sans-serif}
+.fx .fh{background:#FAF9F6;padding:16px 16px 12px}
+.fx .br{font-size:10px;font-weight:700;color:#86868B;letter-spacing:.08em}
+.fx .kk{font-size:12px;font-weight:700;margin-top:8px}
+.fx .tt{font-size:19px;font-weight:700;color:#1D1D1F;margin-top:3px;line-height:1.3}
+.fx .fb{padding:14px 16px 16px;font-size:13px;color:#1D1D1F}
+.fx .rw{display:flex;gap:10px;padding:3px 0}
+.fx .rw .l{flex:2;color:#86868B;font-size:12px}.fx .rw .v{flex:6}
+.fx .tx{white-space:pre-wrap;line-height:1.55;padding:2px 0}
+.fx .nt{border-top:1px solid #E5E5EA;margin-top:12px;padding-top:10px;font-size:11px;color:#86868B;white-space:pre-wrap}
+.fx .ff{padding:0 14px 14px;display:flex;flex-direction:column;gap:8px}
+.fx .ff button{border:0;border-radius:10px;padding:10px;font:inherit;font-size:14px;font-weight:600;cursor:pointer;background:#EFEDE8;color:#1D1D1F;transition:transform .15s}
+.fx .ff button.pr{background:#1D1D1F;color:#fff}
+.fx .ff button:active{transform:scale(.97)}
+.fx .ff button:disabled{opacity:.35;cursor:default}
+.fx .tm{display:block;font-size:10px;color:#aaa;padding:0 16px 10px}
+.msg,.fx{transform-origin:left bottom}
+.msg.me{transform-origin:right bottom}
+.pop{animation:pop .5s cubic-bezier(.2,.9,.25,1.15)}
+@keyframes pop{from{opacity:0;transform:translateY(14px) scale(.96)}to{opacity:1;transform:none}}
+.cls{transition:transform .25s}.cls:hover{transform:translateY(-2px)}
+.cls.changed{animation:pulse 1.6s infinite}
+</style>
+</head>
+<body>
+<header>
+  <div><div class="logo">會員關係系統</div><div class="sub"><span id="gymName">示範健身房</span>｜管理端・教練端・會員端（LINE）</div></div>
+  <div class="roles">
+    <button data-role="admin" class="on">管理端</button>
+    <button data-role="coach">教練端</button>
+    <button class="demo" id="autoDemo">一鍵示範：教練請假 →</button>
+    <button id="reset" style="background:#444;color:#ddd">重來</button>
+  </div>
+</header>
+<div class="notice">示範資料說明：團課表、會籍方案都是示範用的範例（可換成貴館自己的）；會員、器材、報修、出席紀錄<b>全部是虛構假資料</b>。所有「發送」都只在這個頁面內模擬，不會真的發出 LINE。</div>
+
+<div class="wrap">
+<main>
+  <!-- ADMIN -->
+  <section id="v-admin">
+    <div class="tabs" id="atabs">
+      <button data-t="home" class="on">總覽</button><button data-t="sched">團課表</button><button data-t="change">異動與代課</button><button data-t="crm">會員關懷</button><button data-t="equip">器材與報修</button><button data-t="post">公告推播</button><button data-t="log">紀錄</button>
+    </div>
+    <div id="a-home"></div>
+    <div id="a-sched" class="hide"></div>
+    <div id="a-change" class="hide"></div>
+    <div id="a-crm" class="hide"></div>
+    <div id="a-equip" class="hide"></div>
+    <div id="a-post" class="hide"></div>
+    <div id="a-log" class="hide"></div>
+  </section>
+  <!-- COACH -->
+  <section id="v-coach" class="hide"></section>
+</main>
+
+<aside>
+  <div class="phone">
+    <div class="ph-top">📱<select id="who"></select></div>
+    <div class="chat" id="chat"></div>
+    <div class="rich" id="rich"></div>
+    <div class="ph-in"><input id="say" placeholder="輸入訊息，例如：11月課表"><button class="btn g sm" id="send">送出</button></div>
+  </div>
+</aside>
+</div>
+<div class="cta">需要客製化？加 LINE <a href="https://line.me/R/ti/p/@812ibtir" target="_blank" rel="noopener" style="color:var(--y);font-weight:800">@812ibtir</a></div>
+<div class="toast" id="toast"></div>
+<dialog id="dlg"></dialog>
+
+<script src="config.js"></script>
+<script>
+/* ========== 資料（全部來自 config.js 的 GYM_CONFIG，換成自己的健身房只要改那個檔案） ========== */
+const CFG=window.GYM_CONFIG;
+const GYM=CFG.gymName;
+const CAT=Object.fromEntries(Object.entries(CFG.categories).map(([k,v])=>[k,v.name]));
+document.head.insertAdjacentHTML('beforeend','<style>'+Object.entries(CFG.categories).map(([k,v])=>`.c-${k}{background:${v.color}${v.text?';color:'+v.text:''}}`).join('')+'</style>');
+document.getElementById('gymName').textContent=GYM;
+const DAYS=['一','二','三','四','五','六','日'];
+const WEEK0=new Date(CFG.weekStart[0],CFG.weekStart[1]-1,CFG.weekStart[2]);
+const dstr=d=>{const x=new Date(WEEK0);x.setDate(x.getDate()+d);return `${x.getMonth()+1}/${x.getDate()}（${DAYS[d]}）`};
+const RAW=CFG.schedule;
+const min=t=>{const[a,b]=t.split(':');return +a*60+ +b};
+let S; // 全部狀態
+function seed(){
+  const courses=RAW.trim().split('\n').map((l,i)=>{const[d,s,e,n,c,cat]=l.split('|');return{id:'C'+(i+1),day:+d,start:s,end:e,name:n,coach:c,orig:c,cat,status:'normal'}});
+  // 假會員：固定亂數，可重現
+  let r=7;const rnd=()=>(r=(r*9301+49297)%233280)/233280;
+  const sur='陳林黃張李王吳劉蔡楊許鄭謝郭洪曾邱廖賴周',giv=['小美','阿哲','佳蓉','冠宇','怡君','柏翰','雅婷','俊傑','宜蓁','承恩','思妤','家豪','欣怡','宗翰','品妍','志明','郁婷','建宏','詩涵','育誠'];
+  const plans=CFG.plans.memberPlans;const D=CFG.demo;const find=q=>courses.find(c=>c.day===q.day&&c.name===q.name);
+  const members=[];
+  for(let i=0;i<D.memberCount;i++){
+    const fav=[];const n=1+Math.floor(rnd()*3);for(let k=0;k<n;k++)fav.push(courses[Math.floor(rnd()*courses.length)].id);
+    const days=Math.floor(Math.pow(rnd(),1.6)*95);
+    members.push({id:'M'+String(i+1).padStart(3,'0'),name:sur[i%20]+'○'+giv[(i*7)%20].slice(-1)+'（假）',plan:plans[Math.floor(rnd()*plans.length)],last:days,fav,care:null,expire:Math.floor(rnd()*200)});
+  }
+  // 示範會員 小美：示範課（預設週五 12:10 哈達瑜珈）的常客
+  const fri=find(D.leaveCourse);
+  if(!fri)throw new Error('config.js：demo.leaveCourse 在課表裡找不到');
+  members[0]={id:'M001',name:'小美（示範會員）',plan:plans[0],last:3,fav:D.memberFavs.map(find).filter(Boolean).map(x=>x.id),care:null,expire:120};
+  members[1]={id:'M002',name:'阿明（示範：42 天沒來）',plan:plans[0],last:42,fav:[(find(D.lapsedMemberFav)||courses[0]).id],care:null,expire:65};
+  // 讓示範課有一群常客
+  for(let i=2;i<2+D.regulars&&i<members.length;i++) if(!members[i].fav.includes(fri.id)) members[i].fav.push(fri.id);
+  const equip=CFG.equipment.map(([id,name,area,cycle,since])=>({id,name,area,cycle,since,state:'正常'}));
+  S={courses,members,equip,changes:[],repairs:[],posts:[],log:[],inbox:{},quota:{...CFG.lineQuota},approve:true};
+  const od=equip.find(e=>e.id===CFG.overdueEquipment);if(od)od.state='保養逾期';
+  // 示範角色：請假的老師、前兩位代課人選（依代課規則自動算出）
+  const cand=candidates(fri).slice(0,2).map(x=>x.k);
+  S.cast={course:fri.id,orig:fri.orig,cand};
+}
+/* ========== 小工具 ========== */
+const $=s=>document.querySelector(s);const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let clock=9*60+2;const now=()=>{clock+=1;return `${String(Math.floor(clock/60)).padStart(2,'0')}:${String(clock%60).padStart(2,'0')}`};
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),2600)}
+function log(t){S.log.unshift(`${now()}　${t}`)}
+const ID={member:'M001',m2:'M002',group:'G',};
+function who(){return $('#who').value}
+function push(to,text,acts){(S.inbox[to]=S.inbox[to]||[]).push({text,acts:acts||null,tm:now(),me:false});if(to!=='G'&&!to.startsWith('coach:')&&!['M001','M002'].includes(to)){/*其他會員只計數*/}S.quota.used+=to==='G'?0:1;if(who()===to)renderPhone()}
+function c(id){return S.courses.find(x=>x.id===id)}
+const cname=x=>`${dstr(x.day)} ${x.start} ${x.name}`;
+function affected(courseId){return S.members.filter(m=>m.fav.includes(courseId))}
+function coaches(){return [...new Set(S.courses.map(x=>x.orig))]}
+function busy(coach,day,s,e){return S.courses.some(x=>x.coach===coach&&x.day===day&&min(x.start)<min(e)+15&&min(x.end)+15>min(s))}
+function subCount(coach){return S.changes.filter(ch=>ch.sub===coach).length}
+/* 代課候選：同課名＞同類別；當天前後 15 分鐘沒課；本月代課少的優先 */
+function candidates(course){
+  return coaches().filter(k=>k!==course.orig).map(k=>{
+    const same=S.courses.some(x=>x.orig===k&&x.name===course.name),cat=S.courses.some(x=>x.orig===k&&x.cat===course.cat);
+    if(!same&&!cat)return null;
+    if(busy(k,course.day,course.start,course.end))return null;
+    const score=(same?100:50)-subCount(k)*10;
+    return{k,score,why:(same?`有帶「${course.name}」`:`會帶${CAT[course.cat]}類課`)+`；${DAYS[course.day]} ${course.start} 前後沒課`+(subCount(k)?`；本月已代 ${subCount(k)} 堂`:'')};
+  }).filter(Boolean).sort((a,b)=>b.score-a.score);
+}
+/* ========== 異動流程（核心） ========== */
+function startChange(courseId,type,reason,newStart){
+  const x=c(courseId);
+  if(S.changes.some(ch=>ch.courseId===courseId&&!['done','cancelled'].includes(ch.status))){toast('這堂課已經在處理異動');return}
+  const ch={id:'X'+(S.changes.length+1),courseId,type,reason,newStart,status:'finding',invites:[],sub:null,steps:[now()],notified:0};
+  S.changes.push(ch);x.status='changed';
+  const aff=affected(courseId);
+  push('G',`🔴 教練異動｜${x.orig} ${type==='leave'?'請假':'改時間'}\n${cname(x)}\n原因：${reason}\n受影響：常上這堂的 ${aff.length} 位會員\n系統已自動：①通知會員 ②${type==='leave'?'依專長找代課':'等管理層確認新時間'}`);
+  log(`${x.orig} ${type==='leave'?'請假':'申請改時間'}：${cname(x)}（${reason}）`);
+  if(type==='leave'){
+    aff.forEach(m=>push(m.id,`📣 課程異動通知\n${cname(x)}\n${x.orig}老師這堂臨時請假，我們正在安排代課老師，確定後會第一時間通知你 🙏\n（這堂課不會取消，原則上會照常上課）`));
+    ch.notified=aff.length;ch.steps.push(now());
+    nextInvite(ch);
+  }else{
+    aff.forEach(m=>push(m.id,`📣 課程時間調整（待確認）\n${cname(x)}\n老師申請改到 ${newStart} 開始，確定後再通知你。`));
+    ch.notified=aff.length;ch.steps.push(now());
+    push('G',`🕑 改時間待確認：${cname(x)} → ${newStart}\n請在中控台「異動與代課」按確認`);
+  }
+  renderAll();toast(`已自動通知 ${aff.length} 位會員`);
+}
+function nextInvite(ch){
+  const x=c(ch.courseId);const asked=ch.invites.map(i=>i.k);
+  const nx=candidates(x).find(cd=>!asked.includes(cd.k));
+  if(!nx){ch.status='nobody';push('G',`⚠️ ${cname(x)} 找不到代課老師（候選都沒空或婉拒）\n請選：取消這堂／改時間／店長指定`);log(`代課無人可接：${cname(x)}`);renderAll();return}
+  ch.invites.push({k:nx.k,status:'asked',why:nx.why});
+  push('coach:'+nx.k,`🙋 代課邀請（先問您）\n${cname(x)}–${x.end}\n原教練：${x.orig}（${ch.reason}）\n推薦原因：${nx.why}\n10 分鐘內沒回覆會改問下一位`,[{l:'✅ 我可以代',f:`acceptSub('${ch.id}','${nx.k}')`},{l:'❌ 這次不行',f:`declineSub('${ch.id}','${nx.k}')`}]);
+  log(`代課邀請 → ${nx.k}（${nx.why}）`);
+}
+function acceptSub(chId,k){
+  const ch=S.changes.find(z=>z.id===chId);if(!ch||ch.status!=='finding')return toast('這個邀請已經處理過');
+  const x=c(ch.courseId);ch.invites.find(i=>i.k===k).status='yes';ch.sub=k;ch.status='done';x.coach=k;x.status='sub';ch.steps.push(now(),now());
+  disableActs(chId);
+  affected(ch.courseId).forEach(m=>push(m.id,`✅ 代課確定\n${cname(x)}\n改由 ${k}老師代課，時間地點不變，等你來 💪\n👉 點選單「團課每週異動」可看本週新課表`,[{l:'👍 我會到',f:`rsvp('${m.id}','${ch.id}',1)`},{l:'這次不去',f:`rsvp('${m.id}','${ch.id}',0)`}]));
+  push('coach:'+x.orig,`已安排 ${k}老師代 ${cname(x)}，好好休息 🙏`);
+  push('G',`🟢 代課完成｜${cname(x)}：${x.orig} → ${k}\n已通知 ${ch.notified} 位會員；本週異動公告已自動更新，可到「公告推播」一鍵推給全部好友`);
+  log(`${k} 接下代課：${cname(x)}；新課表與異動公告自動更新`);
+  renderAll();toast(`${k} 接下代課，已通知會員並更新課表`);
+}
+function declineSub(chId,k){
+  const ch=S.changes.find(z=>z.id===chId);if(!ch||ch.status!=='finding')return toast('這個邀請已經處理過');
+  ch.invites.find(i=>i.k===k).status='no';disableActs(chId,k);log(`${k} 婉拒代課，改問下一位`);nextInvite(ch);renderAll();
+}
+function disableActs(chId,k){Object.values(S.inbox).flat().forEach(m=>{if(m.acts&&m.acts.some(a=>a.f.includes(chId)&&(!k||a.f.includes(k))&&a.f.includes('Sub')))m.acts.forEach(a=>a.done=1)})}
+function approveRetime(chId){
+  const ch=S.changes.find(z=>z.id===chId);const x=c(ch.courseId);const dur=min(x.end)-min(x.start);const ns=min(ch.newStart);
+  const old=x.start;x.start=ch.newStart;x.end=`${String(Math.floor((ns+dur)/60)).padStart(2,'0')}:${String((ns+dur)%60).padStart(2,'0')}`;x.status='sub';ch.status='done';ch.steps.push(now(),now());
+  affected(ch.courseId).forEach(m=>push(m.id,`✅ 時間已調整\n${dstr(x.day)} ${x.name}\n${old} → ${x.start}（${x.orig}老師）`,[{l:'👍 新時間可以',f:`rsvp('${m.id}','${ch.id}',1)`},{l:'改時間我不行',f:`rsvp('${m.id}','${ch.id}',0)`}]));
+  push('G',`🟢 改時間完成｜${dstr(x.day)} ${x.name} ${old}→${x.start}，已通知會員`);log(`改時間確認：${dstr(x.day)} ${x.name} ${old}→${x.start}`);renderAll();
+}
+function cancelChange(chId){const ch=S.changes.find(z=>z.id===chId);const x=c(ch.courseId);ch.status='cancelled';x.status='cancel';
+  affected(ch.courseId).forEach(m=>push(m.id,`⚠️ 停課通知\n${cname(x)} 本週停課一次，造成不便很抱歉。\n同時段推薦：${S.courses.filter(y=>y.day===x.day&&y.id!==x.id&&Math.abs(min(y.start)-min(x.start))<=120).map(y=>y.start+' '+y.name).join('、')||'請看本週課表'}`));
+  log(`停課：${cname(x)}`);renderAll()}
+function rsvp(mid,chId,yes){const m=S.inbox[mid].at(-1);(S.inbox[mid]||[]).forEach(z=>{if(z.acts&&z.acts.some(a=>a.f.includes(chId)&&a.f.includes('rsvp')))z.acts.forEach(a=>a.done=1)});S.inbox[mid].push({text:yes?'我會到 👍':'這次不去',me:true,tm:now()});push(mid,yes?'收到！課前 2 小時會再提醒你一次 ⏰':'了解～幫你找了同類型的其他時段，點「團體課表」看看 🙌');renderAll()}
+/* ========== 會員關懷 ========== */
+const CR=CFG.care;
+function risk(m){return m.last>=CR.high?['流失高風險','t-bad']:m.last>=CR.mid?[CR.mid+' 天沒來','t-warn']:m.last>=CR.light?[CR.light+' 天沒來','t-info']:['活躍','t-ok']}
+function careMsg(m){
+  const f=c(m.fav[0]);const nm=m.name.replace(/（.*）/,'');
+  if(m.last>=CR.high)return `${nm} 好久不見！店長想親自關心一下 😊\n最近是忙還是遇到什麼狀況？有任何建議都可以直接回覆我們。\n${CFG.comebackOffer}`;
+  if(m.last>=CR.mid)return `${nm}～好一陣子沒在 ${f.name} 看到你了 😄\n${f.coach}老師這週${DAYS[f.day]} ${f.start} 還有位子，要不要回來動一動？\n回覆「我要去」幫你記下來，課前提醒你。`;
+  return `${nm} 最近忙嗎？你常上的 ${f.name}（${DAYS[f.day]} ${f.start}，${f.coach}老師）這週照常上課 💪\n天氣變冷，記得多暖身 10 分鐘！`;
+}
+function sendCare(ids){let n=0;ids.forEach(id=>{const m=S.members.find(z=>z.id===id);if(m.care)return;m.care=now();push(m.id,careMsg(m),[{l:'我要去',f:`careBack('${m.id}')`},{l:'最近比較忙',f:`careBusy('${m.id}')`}]);n++});log(`會員關懷訊息 ${n} 則`);renderAll();toast(`已送出 ${n} 則關懷訊息（模擬）`)}
+function careBack(id){const m=S.members.find(z=>z.id===id);(S.inbox[id]||[]).forEach(z=>{if(z.acts&&z.acts.some(a=>a.f.includes('care')))z.acts.forEach(a=>a.done=1)});S.inbox[id].push({text:'我要去',me:true,tm:now()});m.back=1;push(id,'太好了！已幫你記下，課前 2 小時提醒你 ⏰ 櫃台見！');push('G',`💚 喚回成功：${m.name} 回覆「我要去」（${m.last} 天沒來）`);log(`喚回成功：${m.name}`);renderAll()}
+function careBusy(id){(S.inbox[id]||[]).forEach(z=>{if(z.acts&&z.acts.some(a=>a.f.includes('care')))z.acts.forEach(a=>a.done=1)});S.inbox[id].push({text:'最近比較忙',me:true,tm:now()});push(id,'了解！會籍可以申請暫停（依會籍條款），需要的話直接回覆「暫停」，櫃台會跟你聯絡 🙏');renderAll()}
+/* ========== 器材 ========== */
+function eqState(e){if(e.state!=='正常')return e.state;return e.since>=e.cycle?'保養到期':'正常'}
+function report(eid,desc,by){const e=S.equip.find(z=>z.id===eid);const r={id:'R'+(S.repairs.length+1),eid,desc,by,status:'待處理',tm:now()};S.repairs.push(r);
+  push('G',`🛠 器材報修｜${e.name}（${e.area}）\n「${desc}」\n回報：${by}\n請在中控台「器材與報修」指派或暫停使用`);log(`器材報修：${e.name}「${desc}」`);renderAll()}
+function repairAct(rid,act){const r=S.repairs.find(z=>z.id===rid);const e=S.equip.find(z=>z.id===r.eid);
+  if(act==='stop'){e.state='暫停使用';r.status='暫停使用・等廠商';push('G',`⛔ ${e.name} 已標示暫停使用`);if(r.by.startsWith('小美'))push('M001',`謝謝回報！${e.name} 已先暫停使用並聯絡廠商，修好會通知你 🙏`)}
+  if(act==='fix'){e.state='正常';e.since=0;r.status='已修復';if(r.by.startsWith('小美'))push('M001',`${e.name} 已經修好囉，謝謝你的回報 💪`)}
+  log(`報修 ${rid}：${r.status}`);renderAll()}
+function maintain(eid){const e=S.equip.find(z=>z.id===eid);e.since=0;e.state='正常';log(`保養完成：${e.name}`);renderAll()}
+/* ========== 公告 ========== */
+const TPL={...CFG.announcements,week:{t:'本週團課異動',b:''}};
+function weekPoster(){const ch=S.changes.filter(z=>z.status==='done'||z.status==='cancelled');if(!ch.length)return '本週目前沒有團課異動 👍';
+  return '📅 本週團課異動\n'+ch.map(z=>{const x=c(z.courseId);return z.status==='cancelled'?`${dstr(x.day)} ${x.start} ${x.name}：停課`:z.type==='leave'?`${dstr(x.day)} ${x.start} ${x.name}：${x.orig} → ${x.coach} 代課`:`${dstr(x.day)} ${x.name}：改到 ${x.start}`}).join('\n')+'\n造成不便，敬請見諒 🙏'}
+function segment(seg){if(seg==='all')return S.members;if(seg==='lapsed')return S.members.filter(m=>m.last>=30);if(seg==='expire')return S.members.filter(m=>m.expire<=30);return S.members.filter(m=>m.fav.some(f=>c(f).cat===seg))}
+function doPost(kind,body,seg){const list=segment(seg);
+  const go=()=>{list.forEach(m=>push(m.id,body));S.posts.unshift({kind:TPL[kind].t,n:list.length,tm:now()});log(`推播「${TPL[kind].t}」給 ${list.length} 人`);renderAll();toast(`已推播給 ${list.length} 位（模擬）`)};
+  if(S.approve&&kind!=='week'){push('G',`📝 待店長審核｜${TPL[kind].t}\n對象 ${list.length} 人、約用 ${list.length} 則 LINE 額度\n——\n${body}`,[{l:'核准發送',f:'__approve()'},{l:'先不要',f:'__reject()'}]);window.__approve=()=>{markDone();go()};window.__reject=()=>{markDone();log('店長退回公告');renderAll()};toast('已送店長審核（看右邊手機切到「管理群」）');$('#who').value='G';renderAll()}else go()}
+function markDone(){(S.inbox.G||[]).forEach(z=>z.acts&&z.acts.forEach(a=>a.done=1))}
+/* ========== 畫面：管理端 ========== */
+let atab='home';
+const CMPS=[
+ ['教練臨時請假',['群組喊人代課','有人接','做異動公告圖','上傳雲端相簿','會員自己點選單看'],['教練 LINE 按請假','*系統依專長找代課','*自動改課表','只私訊常上的會員','公告自動產生']],
+ ['會員問「11 月課表」',['等負責人員回覆','回「月底公告」'],['*24 小時自動回覆','登記「出來就通知」']],
+ ['會員很久沒來',['沒人發現','到期才知道不續'],['入場紀錄自動分級','*帶他常上的課＋教練去關心','回「我要去」就記下']],
+ ['器材壞了',['口頭跟櫃台說','交班後忘記'],['LINE 點選＋拍照','*管理群卡片一鍵暫停','修好自動回覆']]];
+function renderAdmin(){
+  const open=S.changes.filter(z=>!['done','cancelled'].includes(z.status)).length,lapsed=S.members.filter(m=>m.last>=30).length,rep=S.repairs.filter(r=>r.status==='待處理').length,due=S.equip.filter(e=>eqState(e)!=='正常').length;
+  $('#a-home').innerHTML=`
+  <div class="kpis">
+   <div class="kpi"><b>${S.courses.length}</b><span>本週團課（示範週 11/2–11/8）</span></div>
+   <div class="kpi"><b style="color:${open?'var(--bad)':'inherit'}">${open}</b><span>處理中的教練異動</span></div>
+   <div class="kpi"><b style="color:var(--warn)">${lapsed}</b><span>30 天以上沒來的會員（假資料）</span></div>
+   <div class="kpi"><b>${rep}／${due}</b><span>待處理報修／保養到期</span></div>
+   <div class="kpi"><b>${S.quota.used}</b><span>本月 LINE 已用則數（示範額度 ${S.quota.cap}）</span></div>
+  </div>
+  <div class="card"><h3>現在的做法 vs. 用系統之後</h3>${CMPS.map(([q,o,n])=>`<div class="cmp"><h4>${q}</h4>
+   <div class="lane old"><span class="lb">現在</span>${o.map((s,i)=>(i?'<span class="arr">→</span>':'')+`<span class="chip">${s}</span>`).join('')}</div>
+   <div class="lane new"><span class="lb">用系統</span>${n.map((s,i)=>(i?'<span class="arr">→</span>':'')+`<span class="chip ${s[0]==='*'?'key':''}">${s.replace(/^\*/,'')}</span>`).join('')}</div></div>`).join('')}</div>
+  <div class="card"><h3>試試看（約 1 分鐘）</h3><ol class="mut" style="font-size:13px;color:var(--k)">
+   <li>按上方綠色 <b>▶ 一鍵示範：教練請假</b>，或到「團課表」點任何一堂課 → 「教練請假」。</li>
+   <li>右邊手機切換身分：<b>小美（會員）</b>、<b>${S.cast.cand[0]||'代課'}老師（代課人選）</b>、<b>管理群</b>，看每個人收到什麼。</li>
+   <li>在小美的 LINE 打「11月課表」、或按選單「器材報修」。</li>
+   <li>到「會員關懷」把 30 天沒來的名單一鍵送出，再切到「阿明（42 天沒來）」看他收到的訊息。</li></ol></div>`;
+  // 課表
+  const cols=[0,1,2,3,4,5,6].map(d=>`<div><div class="dayh">${dstr(d)}</div>${S.courses.filter(x=>x.day===d).sort((a,b)=>min(a.start)-min(b.start)).map(x=>`<div class="cls c-${x.cat} ${x.status==='changed'?'changed':''} ${x.status==='sub'?'sub':''}" style="${x.status==='cancel'?'opacity:.35;text-decoration:line-through':''}" onclick="courseDlg('${x.id}')">${x.status==='changed'?'<span class="badge">異動中</span>':x.status==='sub'?'<span class="badge">已更新</span>':''}<div class="t">${x.start}–${x.end}</div><div class="n">${esc(x.name)}</div><div class="c">${x.coach}${x.coach!==x.orig?'（代 '+x.orig+'）':''}</div></div>`).join('')}</div>`).join('');
+  $('#a-sched').innerHTML=`<div class="card"><h3>團課表（點任一堂課可模擬請假／改時間）</h3><div class="legend">${Object.entries(CAT).map(([k,v])=>`<span><i class="c-${k}"></i>${v}</span>`).join('')}</div></div><div class="card tbl"><div class="grid7">${cols}</div></div>`;
+  // 異動
+  $('#a-change').innerHTML=`<div class="card"><h3>教練異動流程</h3>${pipe(0,false)}<div class="mut">店長只在「沒有人能代課」時要做決定，其他步驟系統自己跑完。</div></div>`+
+   (S.changes.length?S.changes.slice().reverse().map(ch=>{const x=c(ch.courseId);const st={finding:['找代課中','t-warn'],done:['完成','t-ok'],nobody:['沒人可代，需店長決定','t-bad'],cancelled:['已停課','t-bad']}[ch.status]||['待確認','t-info'];
+     const n=ch.status==='done'?6:ch.status==='finding'?(ch.invites.length?4:3):ch.type==='retime'?2:3;
+     return `<div class="card"><div class="row"><h3 style="margin:0">${cname(x)}</h3><span class="tag ${st[1]}">${ch.type==='leave'?'請假':'改時間'}｜${st[0]}</span></div>
+     <div class="mut">原教練 ${x.orig}｜原因：${esc(ch.reason)}｜已通知 ${ch.notified} 位常上會員</div>
+     ${pipe(n,ch.status==='done')}
+     ${ch.type==='leave'?`<table><tr><th>代課人選</th><th>推薦原因</th><th>狀態</th></tr>${[...ch.invites,...(ch.status==='finding'?candidates(x).filter(cd=>!ch.invites.some(i=>i.k===cd.k)):[])].slice(0,6).map(cd=>{const iv=ch.invites.find(i=>i.k===cd.k);return `<tr><td>${cd.k}</td><td class="mut">${cd.why}</td><td>${iv?{asked:'<span class="tag t-warn">邀請中</span>',yes:'<span class="tag t-ok">接了</span>',no:'<span class="tag t-bad">婉拒</span>'}[iv.status]:'<span class="mut">排隊中</span>'}</td></tr>`}).join('')}</table>`:''}
+     <div class="row" style="margin-top:8px">${ch.status==='finding'&&ch.invites.length?`<button class="btn g sm" onclick="acceptSub('${ch.id}','${ch.invites.at(-1).k}')">模擬：${ch.invites.at(-1).k} 接下</button><button class="btn ghost sm" onclick="declineSub('${ch.id}','${ch.invites.at(-1).k}')">模擬：${ch.invites.at(-1).k} 婉拒</button>`:''}
+     ${ch.type==='retime'&&ch.status==='finding'?`<button class="btn g sm" onclick="approveRetime('${ch.id}')">確認改到 ${ch.newStart}</button>`:''}
+     ${['finding','nobody'].includes(ch.status)?`<button class="btn red sm" onclick="cancelChange('${ch.id}')">改成停課</button>`:''}</div></div>`}).join(''):'<div class="card mut">目前沒有異動。到「團課表」點一堂課，或按上方「一鍵示範」。</div>');
+  // CRM
+  const ms=S.members.slice().sort((a,b)=>b.last-a.last);const tiers=[[CR.high,`流失高風險（${CR.high} 天以上）`],[CR.mid,`${CR.mid}–${CR.high-1} 天沒來`],[CR.light,`${CR.light}–${CR.mid-1} 天沒來`]];
+  $('#a-crm').innerHTML=`<div class="kpis">${tiers.map(([d,t],i)=>{const g=S.members.filter(m=>m.last>=d&&(i===0||m.last<tiers[i-1][0]));return `<div class="kpi"><b>${g.length}</b><span>${t}</span><br><button class="btn y sm" style="margin-top:6px" onclick="sendCare([${g.map(m=>`'${m.id}'`).join(',')}])">一鍵送關懷（${g.filter(m=>!m.care).length}）</button></div>`}).join('')}
+   <div class="kpi"><b style="color:var(--ok)">${S.members.filter(m=>m.back).length}</b><span>已回覆「我要去」</span></div>
+   <div class="kpi"><b>${S.members.filter(m=>m.expire<=30).length}</b><span>30 天內會籍到期（續約提醒）</span></div></div>
+   <div class="card"><h3>關懷規則（可調）</h3><div class="mut" style="color:var(--k)">14 天：輕關心＋他常上的課這週照常 ／ 30 天：用「他熟悉的教練」名義邀回來 ／ 60 天：店長名義＋回流誘因（config.js 的 comebackOffer） ／ 到期前 30 天：續約提醒。<br>原則上每位會員 30 天內最多收 1 則關懷，避免打擾；回覆「最近比較忙」→ 提供暫停會籍說明。</div></div>
+   <div class="card tbl"><table><tr><th>會員（假）</th><th>方案</th><th>上次入場</th><th>常上課程</th><th>狀態</th><th></th></tr>
+   ${ms.map(m=>{const[rk,cl]=risk(m);return `<tr><td>${esc(m.name)}</td><td class="mut">${m.plan}</td><td>${m.last} 天前</td><td class="mut">${m.fav.map(f=>c(f).name).join('、')}</td><td><span class="tag ${cl}">${rk}</span>${m.back?' <span class="tag t-ok">已喚回</span>':''}</td><td>${m.last>=CR.light?(m.care?'<span class="mut">已送 '+m.care+'</span>':`<button class="btn sm ghost" onclick="previewCare('${m.id}')">看訊息</button> <button class="btn sm" onclick="sendCare(['${m.id}'])">送出</button>`):''}</td></tr>`}).join('')}</table></div>`;
+  // 器材
+  $('#a-equip').innerHTML=`<div class="card"><h3>報修單</h3>${S.repairs.length?`<table><tr><th>時間</th><th>器材</th><th>內容</th><th>回報</th><th>狀態</th><th></th></tr>${S.repairs.slice().reverse().map(r=>{const e=S.equip.find(z=>z.id===r.eid);return `<tr><td>${r.tm}</td><td>${e.name}</td><td>${esc(r.desc)}</td><td>${esc(r.by)}</td><td><span class="tag ${r.status==='已修復'?'t-ok':'t-warn'}">${r.status}</span></td><td>${r.status==='待處理'?`<button class="btn red sm" onclick="repairAct('${r.id}','stop')">暫停使用</button>`:''}${r.status!=='已修復'?` <button class="btn g sm" onclick="repairAct('${r.id}','fix')">已修好</button>`:''}</td></tr>`}).join('')}</table>`:'<div class="mut">目前沒有報修。可在右邊手機（小美）按選單「器材報修」試試，或 <button class="btn sm ghost" onclick="report(\'T03\',\'跑步帶會打滑\',\'櫃台\')">模擬一筆</button></div>'}</div>
+   <div class="card tbl"><h3>器材登錄與保養（假資料）</h3><table><tr><th>編號</th><th>器材</th><th>區域</th><th>保養週期</th><th>距上次保養</th><th>狀態</th><th></th></tr>${S.equip.map(e=>{const s=eqState(e);return `<tr><td>${e.id}</td><td>${e.name}</td><td>${e.area}</td><td>每 ${e.cycle} 天</td><td>${e.since} 天</td><td><span class="tag ${s==='正常'?'t-ok':s==='暫停使用'?'t-bad':'t-warn'}">${s}</span></td><td>${s==='保養到期'||s==='保養逾期'?`<button class="btn sm" onclick="maintain('${e.id}')">記錄保養完成</button>`:''}</td></tr>`}).join('')}</table></div>`;
+  // 公告
+  $('#a-post').innerHTML=`<div class="card"><h3>本週團課異動公告（系統自動產生）</h3><div class="poster"><h4>課程異動公告</h4>${S.changes.filter(z=>['done','cancelled'].includes(z.status)).map(z=>{const x=c(z.courseId);return `<div class="r"><b>${dstr(x.day)}</b> ${x.start} ${x.name}　${z.status==='cancelled'?'停課':z.type==='leave'?x.orig+' ➜ <b>'+x.coach+'</b>':'改到 <b>'+x.start+'</b>'}</div>`}).join('')||'<div class="r">本週目前沒有異動</div>'}<div style="text-align:center;font-size:12px">造成不便，敬請見諒</div></div>
+   <div class="row" style="margin-top:8px"><button class="btn g" onclick="doPost('week',weekPoster(),'all')">推播給全部會員（${S.members.length} 人）</button><span class="mut">原本要做圖、上傳雲端；現在課表一改，公告就跟著改。</span></div></div>
+   <div class="card"><h3>發公告</h3><div class="row"><select id="pk">${Object.keys(CFG.announcements).map(k=>`<option value="${k}">${TPL[k].t}</option>`).join('')}</select>
+   <select id="ps"><option value="all">全部會員</option><option value="lapsed">30 天以上沒來</option><option value="expire">30 天內到期</option>${Object.entries(CAT).map(([k,v])=>`<option value="${k}">常上「${v}」的人</option>`).join('')}</select>
+   <label class="mut"><input type="checkbox" id="pa" ${S.approve?'checked':''} onchange="S.approve=this.checked"> 發送前送店長審核</label></div>
+   <textarea id="pb" rows="5" style="margin-top:8px"></textarea><div class="row" style="margin-top:6px"><button class="btn y" onclick="doPost($('#pk').value,$('#pb').value,$('#ps').value)">發送</button><span class="mut" id="pcount"></span></div></div>
+   <div class="card"><h3>推播紀錄</h3>${S.posts.map(p=>`<div>${p.tm}　${p.kind}　→ ${p.n} 人</div>`).join('')||'<span class="mut">還沒有</span>'}</div>`;
+  const pk=$('#pk'),pb=$('#pb'),ps=$('#ps');const upd=()=>{$('#pcount').textContent=`對象 ${segment(ps.value).length} 人，約用 ${segment(ps.value).length} 則 LINE 額度`};pb.value=TPL[pk.value].b;pk.onchange=()=>{pb.value=TPL[pk.value].b};ps.onchange=upd;upd();
+  $('#a-log').innerHTML=`<div class="card"><h3>系統紀錄</h3><ul class="log">${S.log.map(l=>`<li>${esc(l)}</li>`).join('')||'<li class="mut">還沒有</li>'}</ul></div>`;
+}
+const STEPS=[['01','收到請假'],['02','通知會員'],['03','排代課人選'],['04','邀請代課'],['05','課表更新'],['06','異動公告']];
+function pipe(n,all){return `<div class="pipe">${STEPS.map(([ic,s],i)=>{const k=i+1;const st=all||k<n?'done':k===n?'now':'';return (i?`<span class="link ${all||k<=n?'done':''}"></span>`:'')+`<div class="node ${st}"><span class="ic">${ic}</span><b>${s}</b></div>`}).join('')}</div>`}
+function previewCare(id){const m=S.members.find(z=>z.id===id);dlg(`<h3>${esc(m.name)}｜${risk(m)[0]}</h3><div class="msg" style="background:#f2f2f2">${esc(careMsg(m))}</div><div class="row" style="justify-content:flex-end"><button class="btn ghost" onclick="dlgClose()">關閉</button><button class="btn" onclick="dlgClose();sendCare(['${id}'])">送出</button></div>`)}
+function dlg(h){const d=$('#dlg');d.innerHTML=h;d.showModal()}function dlgClose(){$('#dlg').close()}
+function courseDlg(id){const x=c(id);const aff=affected(id);
+  dlg(`<h3>${cname(x)}–${x.end}</h3><div class="mut">${CAT[x.cat]}｜教練 ${x.coach}｜常上這堂的會員 ${aff.length} 位（假資料）</div>
+  <p><b>模擬教練異動</b></p><div class="row"><select id="dr"><option>身體不適</option><option>家裡有事</option><option>受傷</option><option>其他</option></select></div>
+  <div class="row" style="margin-top:8px"><button class="btn red" onclick="dlgClose();startChange('${id}','leave',$('#dr').value)">教練請假（找代課）</button>
+  <input id="dt" type="time" value="${x.start}" step="600"><button class="btn ghost" onclick="dlgClose();startChange('${id}','retime',$('#dr').value,$('#dt').value)">改時間</button></div>
+  <div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn ghost" onclick="dlgClose()">關閉</button></div>`)}
+/* ========== 教練端 ========== */
+let coachSel=null; // seed() 之後設成請假的老師
+function renderCoach(){
+  const mine=S.courses.filter(x=>x.coach===coachSel||x.orig===coachSel).sort((a,b)=>a.day-b.day||min(a.start)-min(b.start));
+  const inv=(S.inbox['coach:'+coachSel]||[]).filter(m=>m.acts&&!m.acts[0].done);
+  $('#v-coach').innerHTML=`<div class="card"><div class="row"><h3 style="margin:0">教練端（LINE 裡打開的小頁面）</h3><select id="cs">${coaches().map(k=>`<option ${k===coachSel?'selected':''}>${k}</option>`).join('')}</select></div>
+  <div class="mut">教練只需要在 LINE 點按鈕：請假、改時間、接代課、看自己課的出席人數。不用做圖、不用在群組喊人。</div></div>
+  ${inv.length?`<div class="card" style="border:2px solid var(--y)"><h3>🙋 代課邀請</h3>${inv.map(m=>`<div class="msg" style="background:#fffaf0;max-width:100%">${esc(m.text)}<div class="acts">${m.acts.map(a=>`<button onclick="${a.f}">${a.l}</button>`).join('')}</div></div>`).join('')}</div>`:''}
+  <div class="card tbl"><h3>${coachSel}老師本週的課</h3><table><tr><th>時間</th><th>課程</th><th>常上會員</th><th>狀態</th><th></th></tr>${mine.map(x=>`<tr><td>${dstr(x.day)} ${x.start}</td><td>${x.name}</td><td>${affected(x.id).length} 位</td><td>${x.orig!==x.coach?(x.coach===coachSel?'<span class="tag t-ok">我代課</span>':'<span class="tag t-info">由 '+x.coach+' 代</span>'):x.status==='changed'?'<span class="tag t-warn">找代課中</span>':x.status==='cancel'?'<span class="tag t-bad">停課</span>':'<span class="tag">照常</span>'}</td><td>${x.orig===coachSel&&x.status==='normal'?`<button class="btn sm red" onclick="courseDlg('${x.id}')">請假／改時間</button>`:''}</td></tr>`).join('')}</table></div>`;
+  $('#cs').onchange=e=>{coachSel=e.target.value;renderCoach()};
+}
+/* ========== 手機（LINE） ========== */
+function whoList(){const k=S.cast,x=c(k.course);return [['M001',`👤 小美（會員・週${DAYS[x.day]}${x.name}常客）`],['M002','👤 阿明（會員・42 天沒來）'],...k.cand.map((n,i)=>['coach:'+n,`🏋️ ${n}老師（代課第${'一二'[i]}人選）`]),['coach:'+k.orig,`🏋️ ${k.orig}老師（請假的人）`],['G','👥 管理群（店長／櫃台）']]}
+
+const KC=[[/^[✅🟢💚]/u,'#2E7D32'],[/^[⚠️⛔🔴]/u,'#C62828'],[/^[📣🕑🛠📝🙋🔥]/u,'#C47F00'],[/^[📅💳⭐📢💡🕖]/u,'#0A84FF']];
+function fxHTML(m,w){
+  const lines=m.text.split('\n').filter(s=>s.trim()!=='');
+  if(m.me||lines.length<2)return null;
+  let col='#6B5A4E';for(const[r,cc]of KC)if(r.test(lines[0])){col=cc;break}
+  const head=lines[0].replace(/^[^\p{L}\p{N}]+/u,'').trim();let kk=head,tt='',rest=lines.slice(1);
+  if(head.includes('｜')){[kk,tt]=head.split('｜')}else if(rest.length&&rest[0].length<=26&&!/：/.test(rest[0])){tt=rest[0];rest=rest.slice(1)}
+  const rows=[],tx=[];let note='';
+  rest.forEach(s=>{const r=s.match(/^([^：\s]{1,6})：(.+)$/);if(/^👉|^（/.test(s))note+=(note?'\n':'')+s;else if(r)rows.push(r);else tx.push(s)});
+  const brand=w==='G'?GYM+'・管理群':w.startsWith('coach:')?GYM+'・教練':GYM;
+  return `<div class="fx"><div class="fh"><div class="br">${brand}</div><div class="kk" style="color:${col}">${esc(kk)}</div>${tt?`<div class="tt">${esc(tt)}</div>`:''}</div>
+   <div class="fb">${rows.map(r=>`<div class="rw"><span class="l">${esc(r[1])}</span><span class="v">${esc(r[2])}</span></div>`).join('')}${tx.length?`<div class="tx">${esc(tx.join('\n'))}</div>`:''}${note?`<div class="nt">${esc(note)}</div>`:''}</div>
+   ${m.acts?`<div class="ff">${m.acts.map((a,i)=>`<button class="${i===0?'pr':''}" ${a.done?'disabled':''} onclick="${a.f}">${a.l}</button>`).join('')}</div>`:''}<span class="tm">${m.tm}</span></div>`;
+}
+const SEEN={};
+function renderPhone(){
+  const w=who();const box=S.inbox[w]||[];
+  const unread=k=>(S.inbox[k]||[]).length;
+  $('#who').innerHTML=whoList().map(([k,t])=>`<option value="${k}" ${k===w?'selected':''}>${t}${unread(k)?'（'+unread(k)+'）':''}</option>`).join('');
+  const isMember=!w.startsWith('coach:')&&w!=='G';
+  $('#chat').innerHTML=`<div class="hd">${esc(w==='G'?GYM+' 管理群':GYM)}<small>${w==='G'?'系統通知與待辦卡片':'自動回覆＋專人服務'}</small></div>`+
+   box.map((m,i)=>{const fresh=i>=(SEEN[w]??box.length);const card=fxHTML(m,w);const h=card||`<div class="msg ${m.me?'me':''}">${esc(m.text)}${m.acts?`<div class="acts">${m.acts.map(a=>`<button ${a.done?'disabled':''} onclick="${a.f}">${a.l}</button>`).join('')}</div>`:''}<span class="tm">${m.tm}</span></div>`;return fresh?h.replace(/^<div class="(fx|msg)/,'<div class="pop $1'):h}).join('')||'<div class="mut" style="color:#fff">（還沒有訊息）</div>';
+  SEEN[w]=box.length;
+  $('#chat').scrollTop=1e6;
+  const rm=isMember?[['會籍方案','plan'],['團體課表','sched'],['團課每週異動','week'],['我的課','my'],['器材報修','fix'],['最新優惠','promo']]:w==='G'?[['今日異動','gchg'],['待處理報修','gfix'],['喚回名單','gcrm']]:[['我的課','cmy'],['請假／改時間','cleave'],['代課邀請','cinv']];
+  $('#rich').innerHTML=rm.map(([t,k])=>`<button onclick="menu('${k}')">${t}</button>`).join('');
+}
+function menu(k){const w=who();const me=t=>{(S.inbox[w]=S.inbox[w]||[]).push({text:t,me:true,tm:now()})};
+  const m=S.members.find(z=>z.id===w);
+  const R={plan:()=>push(w,CFG.plans.menuText),
+   sched:()=>push(w,`📅 本週團課 ${S.courses.length} 堂\n今天（一）晚上：\n`+S.courses.filter(x=>x.day===0&&min(x.start)>=18*60).map(x=>`${x.start} ${x.name}｜${x.coach}`).join('\n')+'\n👉 完整課表（網頁）'),
+   week:()=>push(w,weekPoster()),
+   my:()=>push(w,m?'⭐ 你常上的課\n'+m.fav.map(f=>{const x=c(f);return `${dstr(x.day)} ${x.start} ${x.name}｜${x.coach}${x.coach!==x.orig?'（代課）':''}${x.status==='cancel'?'｜停課':''}`}).join('\n')+'\n有異動會第一時間私訊你':'—'),
+   fix:()=>push(w,'🛠 哪一台有問題？（也可以直接拍照傳給我們）',CFG.fixMenu.map(id=>S.equip.find(e=>e.id===id)).filter(Boolean).map(e=>({l:e.name,f:`fixPick('${e.id}')`}))),
+   promo:()=>push(w,CFG.promo),
+   gchg:()=>push(w,S.changes.length?S.changes.map(z=>`${cname(c(z.courseId))}：${z.status}`).join('\n'):'今天沒有異動'),
+   gfix:()=>push(w,S.repairs.filter(r=>r.status!=='已修復').map(r=>`${S.equip.find(e=>e.id===r.eid).name}：${r.status}`).join('\n')||'沒有待處理報修'),
+   gcrm:()=>push(w,`30 天以上沒來：${S.members.filter(m=>m.last>=30).length} 人\n已送關懷：${S.members.filter(m=>m.care).length} 人\n已回覆要回來：${S.members.filter(m=>m.back).length} 人`),
+   cmy:()=>push(w,S.courses.filter(x=>x.coach===w.slice(6)).map(x=>`${dstr(x.day)} ${x.start} ${x.name}（${affected(x.id).length} 位常客）`).join('\n')||'本週沒有課'),
+   cleave:()=>{coachSel=w.slice(6);setRole('coach');push(w,'已打開「請假／改時間」頁面 👉 左邊畫面')},
+   cinv:()=>push(w,(S.inbox[w]||[]).some(z=>z.acts&&!z.acts[0].done)?'往上看，有待回覆的代課邀請 ⬆️':'目前沒有代課邀請')};
+  me({plan:'會籍方案',sched:'團體課表',week:'團課每週異動',my:'我的課',fix:'器材報修',promo:'最新優惠'}[k]||'選單');R[k]();renderAll()}
+function fixPick(eid){const w=who();(S.inbox[w]||[]).forEach(z=>{if(z.acts&&z.acts.some(a=>a.f.includes('fixPick')))z.acts.forEach(a=>a.done=1)});const e=S.equip.find(z=>z.id===eid);S.inbox[w].push({text:e.name+'：跑起來有異音',me:true,tm:now()});report(eid,'跑起來有異音',(S.members.find(m=>m.id===w)||{name:w}).name);push(w,`收到！已通知櫃台處理「${e.name}」，有進度會再告訴你 🙏`);renderAll()}
+function say(){const t=$('#say').value.trim();if(!t)return;const w=who();(S.inbox[w]=S.inbox[w]||[]).push({text:t,me:true,tm:now()});$('#say').value='';
+  if(/11\s*月.*課表|下個月.*課表/.test(t))push(w,'📅 11 月課表預計月底公告。\n已幫你登記「課表出來第一時間通知」✅\n在那之前，10 月課表照常，點「團體課表」可以看。');
+  else if(/課表/.test(t))menu('sched');
+  else if(/營業|幾點/.test(t))push(w,CFG.hours);
+  else if(CFG.promoKeyword.test(t))push(w,CFG.promoReply);
+  else if(/價|會籍|月費/.test(t))menu('plan');
+  else if(/壞|報修|故障/.test(t))menu('fix');
+  else if(/我要去/.test(t))push(w,'收到！課前 2 小時提醒你 ⏰');
+  else push(w,'收到～這題已轉給櫃台專人回覆（營業時間內約 30 分鐘內）🙏\n常見問題可以直接點下方選單。');
+  renderAll()}
+/* ========== 一鍵示範 ========== */
+async function autoDemo(){
+  const fri=c(S.cast.course);
+  if(fri.status!=='normal'){toast('已經示範過，按「重來」再看一次');return}
+  const wait=ms=>new Promise(r=>setTimeout(r,ms));
+  setRole('coach');coachSel=fri.orig;renderCoach();toast(`① ${fri.orig}老師在 LINE 按「請假」`);await wait(1600);
+  $('#who').value='M001';startChange(fri.id,'leave','身體不適');toast('② 常上這堂的會員馬上收到通知（看右邊小美）');await wait(2600);
+  const ch=S.changes.at(-1),k=ch.invites.at(-1).k;
+  $('#who').value='coach:'+k;renderPhone();toast(`③ 系統依專長＋空檔，先邀請 ${k}老師代課`);await wait(2600);
+  acceptSub(ch.id,k);toast(`④ ${k}老師按「我可以代」`);await wait(2200);
+  $('#who').value='M001';renderPhone();toast('⑤ 小美收到「代課確定」，課表自動改好');await wait(2600);
+  setRole('admin');showTab('post');toast('⑥ 本週異動公告自動產生，可一鍵推播');
+}
+/* ========== 外框 ========== */
+function setRole(r){document.querySelectorAll('.roles [data-role]').forEach(b=>b.classList.toggle('on',b.dataset.role===r));$('#v-admin').classList.toggle('hide',r!=='admin');$('#v-coach').classList.toggle('hide',r!=='coach');renderAll()}
+function showTab(t){atab=t;document.querySelectorAll('#atabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));['home','sched','change','crm','equip','post','log'].forEach(k=>$('#a-'+k).classList.toggle('hide',k!==t));const v=$('#a-'+t);v.classList.remove('view-in');void v.offsetWidth;v.classList.add('view-in')}
+function renderAll(){renderAdmin();renderCoach();renderPhone()}
+document.querySelectorAll('.roles [data-role]').forEach(b=>b.onclick=()=>setRole(b.dataset.role));
+document.querySelectorAll('#atabs button').forEach(b=>b.onclick=()=>showTab(b.dataset.t));
+$('#who').onchange=renderPhone;$('#send').onclick=say;$('#say').onkeydown=e=>{if(e.key==='Enter')say()};
+$('#autoDemo').onclick=autoDemo;$('#reset').onclick=()=>{seed();coachSel=S.cast.orig;clock=9*60+2;init();toast('已重設示範資料')};
+function init(){push('M001','歡迎回來！點下方選單可以看課表、我的課、器材報修 💪');$('#who').value='M001';renderAll();$('#who').value='M001';renderPhone()}
+seed();coachSel=S.cast.orig;$('#who').innerHTML=whoList().map(([k,t])=>`<option value="${k}">${t}</option>`).join('');init();
+if(location.hash==='#auto')setTimeout(autoDemo,600);
+</script>
+</body>
+</html>
