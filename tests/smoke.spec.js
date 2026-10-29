@@ -28,7 +28,7 @@ test.describe('說明頁 index.html', () => {
     await expect(page.locator('#out')).toHaveText('NT$ 18,000');        // 100 × 15% × 1200
     const demoLinks = await page.locator('a[href="demo/index.html#auto"]').count();
     expect(demoLinks).toBeGreaterThan(0);
-    await expect(page.locator('a[href="https://line.me/R/ti/p/@812ibtir"]').first()).toBeVisible();
+    await expect(page.locator('a[href="https://line.me/ti/p/xzHT2IywOM"]').first()).toBeVisible();
     expect(errors).toEqual([]);
   });
 
